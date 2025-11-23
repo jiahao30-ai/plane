@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>医飞速达——物资下单</title>
+    <style>
+        /* 原有样式保持不变 */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+               background: #f7f9fc; color: #333; line-height: 1.5; }
+
+        .medicine-container { max-width: 1240px; margin: 0 auto; padding: 20px 10px; }
+        .medicine-grid { display: grid; gap: 20px; }
+        @media (min-width: 1025px) { .medicine-grid { grid-template-columns: repeat(4, 1fr); } }
+        @media (max-width: 1024px) and (min-width: 600px) { .medicine-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 599px) { .medicine-grid { grid-template-columns: 1fr; } }
+
+        .medicine-card { background: #fff; border-radius: 12px;
+                         box-shadow: 0 2px 6px rgba(0,0,0,.06);
+                         display: flex; flex-direction: column; height: 100%;
+                         transition: transform .25s, box-shadow .25s; position: relative; }
+        .medicine-card:hover { transform: translateY(-4px); box-shadow: 0 6px 18px rgba(0,0,0,.10); }
+
+        .medicine-image { width: 100%; aspect-ratio: 4 / 3;
+                          object-fit: cover; border-radius: 12px 12px 0 0; }
+        .medicine-body  { padding: 14px 16px 18px; flex: 1; display: flex; flex-direction: column; }
+
+        .medicine-name  { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+        .medicine-kind  { font-size: 13px; color: #888; margin-bottom: 10px; }
+        .medicine-intro { font-size: 14px; color: #555; flex: 1;
+                          display: -webkit-box; -webkit-line-clamp: 3;
+                          -webkit-box-orient: vertical; overflow: hidden; }
+        .medicine-price { margin-top: 12px; font-size: 22px; color: #ff4757; font-weight: 700; }
+
+        .action-buttons {
+            display: none;
+            position: absolute;
+            bottom: 12px;
+            width: 100%;
+            padding: 0 12px;
+            justify-content: space-between;
+        }
+        .medicine-card:hover .action-buttons {
+            display: flex;
+        }
+        .add-cart-btn {
+            background: #007bff;
+            color: #fff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .add-cart-btn.remove {
+            background: #dc3545;
+        }
+        .view-detail-btn {
+            background: #28a745;
+            color: #fff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            text-decoration: none;
+        }
+
+        .pagination-wrapper { margin-top: 40px; display: flex; justify-content: center; }
+        .pagination { display: flex; align-items: center; gap: 8px; user-select: none; }
+        .pagination a, .pagination span {
+            min-width: 38px; height: 38px; display: inline-flex; align-items: center;
+            justify-content: center; border-radius: 8px; font-size: 14px;
+            border: 1px solid #e6e6e6; background: #fff; color: #333;
+            text-decoration: none; transition: .2s; }
+        .pagination a:hover { background: #f2f2f2; }
+        .pagination .current { background: #007bff; color: #fff; border-color: #007bff; }
+        .pagination .disabled { color: #ccc; cursor: not-allowed; }
+
+        .cart-entry {
+            position: fixed;
+            bottom: 60px;
+            right: 20px;
+            width: 54px;
+            height: 54px;
+            background: #007bff;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 54px;
+            font-size: 22px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.25);
+            cursor: pointer;
+            z-index: 999;
+        }
+        .cart-count {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #ff4757;
+            color: #fff;
+            font-size: 12px;
+            min-width: 18px;
+            height: 18px;
+            line-height: 18px;
+            border-radius: 9px;
+            padding: 0 4px;
+        }
+        .cart-tip {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,.7);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 4px;
+            display: none;
+            z-index: 9999;
+        }
+        .medicine-card {
+            position: relative;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            grid-column: 1 / -1;
+        }
+        .cart-entry {
+            transition: transform 0.2s;
+        }
+        .cart-entry:hover {
+            transform: scale(1.1);
+        }
+        @media (max-width: 599px) {
+            .action-buttons {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .add-cart-btn, .view-detail-btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+        
+        /* 加载指示器样式 */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 新增筛选功能样式 */
+        .filter-section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,.06);
+        }
+        
+        .filter-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            align-items: center;
+        }
+        
+
+        
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .filter-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #555;
+        }
+        
+        .filter-select, .filter-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #fff;
+            transition: border-color 0.2s;
+        }
+        
+        .filter-select:focus, .filter-input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+        }
+        
+        .filter-buttons {
+            display: flex;
+            justify-content: center; /* 居中显示按钮 */
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .filter-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .apply-btn {
+            background: #007bff;
+            color: #fff;
+        }
+        
+        .apply-btn:hover {
+            background: #0069d9;
+        }
+        
+        .reset-btn {
+            background: #f8f9fa;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        
+        .reset-btn:hover {
+            background: #e9ecef;
+        }
+        
+        .price-range {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .price-range .filter-input {
+            flex: 1;
+        }
+        
+        .price-separator {
+            font-size: 14px;
+            color: #777;
+        }
+        
+        @media (max-width: 768px) {
+            .filter-row {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .filter-group {
+                min-width: 100%;
+            }
+            
+            .price-range {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .price-separator {
+                text-align: center;
+                padding: 5px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include "ceil.html" %}
+    <div class="medicine-container">
+        <!-- 新增筛选部分 -->
+        <div class="filter-section">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label class="filter-label" for="kind-filter">药品种类</label>
+                    <select class="filter-select" id="kind-filter">
+                        <option value="">全部种类</option>
+                        <option value="中药">中药</option>
+                        <option value="西药">西药</option>
+                        <option value="保健品">保健品</option>
+                        <option value="防疫用品">防疫用品</option>
+                        <option value="医疗器械">医疗器械</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label" for="price-filter">价格范围</label>
+                    <div class="price-range">
+                        <input type="number" class="filter-input" id="min-price" placeholder="最低价" min="0" step="0.01">
+                        <span class="price-separator">-</span>
+                        <input type="number" class="filter-input" id="max-price" placeholder="最高价" min="0" step="0.01">
+                    </div>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label" for="sort-filter">排序方式</label>
+                    <select class="filter-select" id="sort-filter">
+                        <option value="default">默认排序</option>
+                        <option value="price-asc">价格从低到高</option>
+                        <option value="price-desc">价格从高到低</option>
+                        <option value="name-asc">名称 A-Z</option>
+                        <option value="name-desc">名称 Z-A</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="filter-buttons">
+                <button class="filter-btn apply-btn" id="apply-filter">应用筛选</button>
+                <button class="filter-btn reset-btn" id="reset-filter">重置筛选</button>
+            </div>
+        </div>
+        
+        <div class="medicine-grid" id="medicineGrid">
+            {% for m in medicine_data.object_list %}
+            <div class="medicine-card" data-id="{{ m.id }}">
+                {% if m.image %}
+                <img src="{{ m.image }}" alt="{{ m.name }} 药品图片" class="medicine-image">
+                {% else %}
+                <div class="medicine-image placeholder">暂无图片</div>
+                {% endif %}
+                <div class="medicine-body">
+                    <div class="medicine-name">{{ m.name }}</div>
+                    <div class="medicine-kind">{{ m.kind }}</div>
+                    <div class="medicine-intro">{{ m.introduction|default:"暂无简介" }}</div>
+                    <div class="medicine-price">¥{{ m.price|floatformat:2 }}</div>
+                </div>
+                <div class="action-buttons">
+                    <button class="add-cart-btn" aria-label="添加 {{ m.name }} 到购物车">加入购物车</button>
+                    <a href="/medicine/{{ m.id }}/inscription/" class="view-detail-btn" aria-label="查看 {{ m.name }} 详情">查看详情</a>
+                </div>
+            </div>
+            {% empty %}
+            <p style="text-align:center;color:#999;grid-column:1/-1;">暂无药品数据</p>
+            {% endfor %}
+            <div class="loading" id="loadingIndicator">
+                加载中...
+            </div>
+        </div>
+        
+        <div class="pagination-wrapper">
+            <nav class="pagination">
+                {% if medicine_data.has_previous %}
+                    <a href="/medicine/1/">首页</a>
+                    <a href="/medicine/{{ medicine_data.previous_page_number }}/">上一页</a>
+                {% else %}
+                    <span class="disabled">首页</span>
+                    <span class="disabled">上一页</span>
+                {% endif %}
+ 
+                <span class="current">
+                    第 {{ medicine_data.number }} 页 / 共 {{ medicine_data.paginator.num_pages }} 页
+                </span>
+ 
+                {% if medicine_data.has_next %}
+                    <a href="/medicine/{{ medicine_data.next_page_number }}/">下一页</a>
+                    <a href="/medicine/{{ medicine_data.paginator.num_pages }}/">尾页</a>
+                {% else %}
+                    <span class="disabled">下一页</span>
+                    <span class="disabled">尾页</span>
+                {% endif %}
+            </nav>
+        </div>
+    </div>
+    
+    <!-- 加载指示器 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+ 
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 修改分页链接，保留筛选参数
+    const paginationLinks = document.querySelectorAll('.pagination a');
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // 构建筛选参数字符串
+    const filterParams = [];
+    if (urlParams.get('kind')) filterParams.push(`kind=${urlParams.get('kind')}`);
+    if (urlParams.get('min_price')) filterParams.push(`min_price=${urlParams.get('min_price')}`);
+    if (urlParams.get('max_price')) filterParams.push(`max_price=${urlParams.get('max_price')}`);
+    if (urlParams.get('sort_by')) filterParams.push(`sort_by=${urlParams.get('sort_by')}`);
+    
+    const filterParamString = filterParams.length > 0 ? '&' + filterParams.join('&') : '';
+    
+    // 更新所有分页链接
+    paginationLinks.forEach(link => {
+        if (link.href && !link.href.includes('?')) {
+            link.href += '?' + filterParamString.substring(1);
+        } else if (filterParamString) {
+            link.href += filterParamString;
+        }
+    });
+
+    // 应用筛选按钮事件
+    document.getElementById('apply-filter').addEventListener('click', function() {
+        applyFilter();
+    });
+    
+    // 重置筛选按钮事件
+    document.getElementById('reset-filter').addEventListener('click', function() {
+        resetFilter();
+    });
+    
+    // 应用筛选函数
+    function applyFilter() {
+        const kind = document.getElementById('kind-filter').value;
+        const minPrice = document.getElementById('min-price').value;
+        const maxPrice = document.getElementById('max-price').value;
+        const sortBy = document.getElementById('sort-filter').value;
+        
+        let url = new URL(window.location);
+        url.searchParams.set('page', 1); // 重置到第一页
+        
+        if (kind) {
+            url.searchParams.set('kind', kind);
+        } else {
+            url.searchParams.delete('kind');
+        }
+        
+        if (minPrice) {
+            url.searchParams.set('min_price', minPrice);
+        } else {
+            url.searchParams.delete('min_price');
+        }
+        
+        if (maxPrice) {
+            url.searchParams.set('max_price', maxPrice);
+        } else {
+            url.searchParams.delete('max_price');
+        }
+        
+        if (sortBy && sortBy !== 'default') {
+            url.searchParams.set('sort_by', sortBy);
+        } else {
+            url.searchParams.delete('sort_by');
+        }
+        
+        window.location.href = url.toString();
+    }
+    
+    // 重置筛选函数 - 修改为直接跳转到 /medicine/
+    function resetFilter() {
+        document.getElementById('kind-filter').value = '';
+        document.getElementById('min-price').value = '';
+        document.getElementById('max-price').value = '';
+        document.getElementById('sort-filter').value = 'default';
+        
+        // 直接跳转到基础路径，清除所有筛选参数
+        window.location.href = '/medicine/';
+    }
+    
+    // 页面加载时设置筛选表单的值
+    const urlParams2 = new URLSearchParams(window.location.search);
+    const kindFilter = urlParams2.get('kind');
+    const minPriceFilter = urlParams2.get('min_price');
+    const maxPriceFilter = urlParams2.get('max_price');
+    const sortByFilter = urlParams2.get('sort_by');
+    
+    if (kindFilter) {
+        document.getElementById('kind-filter').value = kindFilter;
+    }
+    
+    if (minPriceFilter) {
+        document.getElementById('min-price').value = minPriceFilter;
+    }
+    
+    if (maxPriceFilter) {
+        document.getElementById('max-price').value = maxPriceFilter;
+    }
+    
+    if (sortByFilter) {
+        document.getElementById('sort-filter').value = sortByFilter;
+    }
+});
+
+// 购物车相关功能
+(function() {
+    // CSRF token helper
+    function getCSRFToken() {
+        return $('input[name=csrfmiddlewaretoken]').val();
+    }
+    
+    // 显示加载指示器
+    function showLoading() {
+        $('#loadingOverlay').css('display', 'flex');
+    }
+    
+    // 隐藏加载指示器
+    function hideLoading() {
+        $('#loadingOverlay').hide();
+    }
+    
+    // 显示提示信息
+    function showTip(text) {
+        const $tip = $(`<div class="cart-tip">${text}</div>`);
+        $('body').append($tip);
+        $tip.fadeIn(200).delay(1200).fadeOut(400, () => $tip.remove());
+    }
+    
+    // 添加商品到购物车
+    function addToCart(medicineId, quantity = 1) {
+        showLoading();
+        
+        return fetch('/add_to_cart/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({
+                medicine_id: medicineId,
+                quantity: quantity
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            if (data.status === 'success') {
+                showTip('商品成功加入购物车！');
+                updateCartCount(data.item_count);
+                return true;
+            } else {
+                showTip('添加失败: ' + data.message);
+                return false;
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            console.error('Error:', error);
+            showTip('添加失败');
+            return false;
+        });
+    }
+    
+    // 从购物车移除商品
+    function removeFromCart(medicineId) {
+        showLoading();
+        
+        return fetch('/remove_from_cart/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({
+                medicine_id: medicineId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            if (data.status === 'success') {
+                showTip('已从购物车移除');
+                updateCartCount(data.item_count);
+                return true;
+            } else {
+                showTip('移除失败: ' + data.message);
+                return false;
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            console.error('Error:', error);
+            showTip('移除失败');
+            return false;
+        });
+    }
+    
+    // 更新购物车计数
+    function updateCartCount(count) {
+        $('.cart-count').text(count);
+    }
+    
+    // 获取购物车商品数量
+    function getCartItemCount() {
+        fetch('/cart_info/', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (response.headers.get('content-type') && 
+                response.headers.get('content-type').includes('application/json')) {
+                return response.json();
+            } else {
+                throw new Error('Response is not JSON');
+            }
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                updateCartCount(data.item_count);
+            }
+        })
+        .catch(error => {
+            console.error('获取购物车数量失败:', error);
+        });
+    }
+    
+    // 初始化购物车入口
+    function initCartEntry() {
+        const $entry = $(`<div class="cart-entry">
+                            <span class="cart-count">0</span>
+                            <a href="/cart_view/" aria-label="查看购物车">🛒</a>
+                          </div>`);
+        $('body').append($entry);
+    }
+    
+    // 初始化按钮状态
+    function initButtonStates() {
+        // 默认所有按钮显示"加入购物车"
+    }
+    
+    // 初始化
+    $(function() {
+        initCartEntry();
+        initButtonStates();
+        
+        // 获取购物车商品数量
+        getCartItemCount();
+        
+        // 使用事件委托处理动态生成的按钮
+        $('#medicineGrid').on('click', '.add-cart-btn', function(e) {
+            e.stopPropagation();
+            const $button = $(this);
+            const $card = $button.closest('.medicine-card');
+            const id = $card.data('id');
+            
+            if ($button.hasClass('remove')) {
+                // 从购物车移除商品
+                removeFromCart(id).then(success => {
+                    if (success) {
+                        $button.text('加入购物车').removeClass('remove');
+                        $button.attr('aria-label', '添加到购物车');
+                    }
+                });
+            } else {
+                // 添加到购物车
+                addToCart(id).then(success => {
+                    if (success) {
+                        $button.text('取消放入').addClass('remove');
+                        $button.attr('aria-label', '从购物车移除');
+                    }
+                });
+            }
+        });
+    });
+})();
+</script>
+    {% csrf_token %}
+    {% include 'footer.html' %}
+</body>
+</html>

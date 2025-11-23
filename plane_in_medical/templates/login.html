@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>医飞速达 - 登录</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root {
+      --primary: #005baa;
+      --danger: #e60012;
+      --gray: #f5f5f7;
+      --text: #333;
+      --radius: 8px;
+      --success: #52c41a;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    body {
+      height: 100vh;
+      background: url("/static/images/image.png") center/cover no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    body::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(2px);
+    }
+    .login-card {
+      position: relative;
+      width: 420px;
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      padding: 25px 30px 20px;
+    }
+    .logo-area {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+     @font-face {
+            font-family: 'AliMamaDaoLiTi';
+            src: url('/static/fonts/阿里妈妈刀隶体/AlimamaDaoLiTi.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+      .logo-text {
+    font-family: 'AliMamaDaoLiTi', 'Microsoft YaHei', sans-serif;
+    background: linear-gradient(to right, #1a2980, #26d0ce); /* 深蓝色到青色的渐变 */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 10px rgba(26, 41, 128, 0.3), 0 0 20px rgba(38, 208, 206, 0.2); /* 添加 subtle 阴影增强可读性 */
+    font-weight: bold;
+    letter-spacing: 2px;
+    font-size: 36px;
+    transform: scale(1.1);
+    transition: transform 0.3s ease;
+}
+
+.logo:hover .logo-text {
+    transform: scale(1.15);
+    text-shadow: 0 0 15px rgba(26, 41, 128, 0.4), 0 0 30px rgba(38, 208, 206, 0.3);
+}
+
+.logo {
+    font-size: 28px;
+    font-weight: 900;
+    color: white;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+
+    .logo img {
+      width: 100%;
+      height: auto;
+      max-height: 60px;
+      object-fit: contain;
+    }
+    
+    .form-item {
+      margin-bottom: 14px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--text);
+      margin-bottom: 5px;
+    }
+    label .required {
+      color: var(--danger);
+    }
+    input {
+      width: 100%;
+      height: 38px;
+      padding: 0 10px;
+      border: 1px solid #dcdcdc;
+      border-radius: var(--radius);
+      font-size: 14px;
+      transition: border 0.2s;
+    }
+    input:focus {
+      border-color: var(--primary);
+      outline: none;
+    }
+    .btn {
+      width: 100%;
+      height: 40px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 15px;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: background 0.2s;
+    }
+    .btn:hover {
+      background: #004a90;
+    }
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      color: #999;
+      margin-top: 16px;
+    }
+    .register-link {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+    .register-link a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+    .register-link a:hover {
+      text-decoration: underline;
+    }
+    
+    /* 验证码输入框容器 */
+    .captcha-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    
+    .captcha-input {
+      flex: 1;
+      padding-right: 120px; /* 为验证码图片留出空间 */
+    }
+    
+    .captcha-image {
+      position: absolute;
+      right: 5px;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 30px;
+      cursor: pointer;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    
+    .captcha-image:hover {
+      opacity: 0.8;
+    }
+    
+        /* 弹出框样式 */
+    .alert-popup {
+      position: fixed;
+      top: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      padding: 18px 25px;
+      border-radius: 10px;
+      color: white;
+      font-weight: 500;
+      font-size: 15px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      z-index: 9999;
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      min-width: 320px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .alert-popup.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+    
+    .alert-popup.success {
+      background: linear-gradient(135deg, #28a745, #20c997);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .alert-popup.error {
+      background: linear-gradient(135deg, #dc3545, #fd7e14);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .alert-popup::before {
+      content: "";
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      margin-right: 10px;
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+    
+    .alert-popup.success::before {
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>');
+    }
+    
+    .alert-popup.error::before {
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>');
+    }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="logo-area">
+      <!-- 医飞速达Logo -->
+      <div class="logo">
+        <img src="/static/images/logo1.png" alt="医飞速达Logo">
+      </div>
+      <div class="school-cn">
+    <span class="logo-text">医飞速达</span>
+</div>
+    </div>
+
+    <form id="loginForm" action="/login/" method="post">
+      {% csrf_token %}
+      <div class="form-item">
+        <label>用户名<span class="required">*</span></label>
+        <input type="text" name="username" placeholder="请输入用户名" required />
+      </div>
+      <div class="form-item">
+        <label>密码<span class="required">*</span></label>
+        <input type="password" name="password" placeholder="请输入密码" required />
+      </div>
+      <!-- 验证码登录 -->
+      <div class="form-item">
+        <label for="captcha">验证码<span class="required">*</span></label>
+        <div class="captcha-container">
+          <input type="text" id="captcha" name="captcha" class="captcha-input" required placeholder="请输入验证码">
+          <img src="{% url 'captcha' %}" alt="验证码" class="captcha-image" onclick="this.src='/captcha/?'+Math.random()">
+        </div>
+      </div>
+      <button class="btn" type="submit">登录</button>
+    </form>
+    
+    <div class="register-link">
+      <a href="/register/">还没有账号？立即注册</a>
+    </div>
+
+    <div class="footer">© 2025 医飞速达 - 智能医疗配送平台</div>
+  </div>
+  
+  <!-- 弹出框 -->
+  <div id="alertPopup" class="alert-popup"></div>
+
+  <script>
+    // 显示弹出框函数
+    function showAlert(message, type) {
+      const popup = document.getElementById('alertPopup');
+      popup.textContent = message;
+      popup.className = 'alert-popup ' + type;
+      popup.classList.add('show');
+      
+      // 3秒后自动隐藏
+      setTimeout(function() {
+        popup.classList.remove('show');
+      }, 3000);
+    }
+    
+    // 页面加载完成后检查是否有错误信息
+    document.addEventListener('DOMContentLoaded', function() {
+      // 检查是否有错误信息
+      const errorMessage = '{{ error_message }}';
+      if (errorMessage) {
+        showAlert(errorMessage, 'error');
+      }
+      
+      // 检查URL参数中是否有登录成功信息
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('login') === 'success') {
+        showAlert('登录成功！', 'success');
+      }
+    });
+    
+    // 表单提交处理
+    document.getElementById("loginForm").addEventListener("submit", function(e) {
+      const username = this.querySelector('input[name="username"]').value;
+      const password = this.querySelector('input[name="password"]').value;
+      
+      if (!username || !password) {
+        e.preventDefault();
+        showAlert("请填写完整的登录信息", 'error');
+        return false;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+[
+  {
+    "step": 2000,
+    "avg_reward": 249.98771481951655,
+    "success_rate": 0.89,
+    "epsilon": 0.00998645168764533
+  },
+  {
+    "step": 4000,
+    "avg_reward": 253.92745785774986,
+    "success_rate": 0.9,
+    "epsilon": 0.00998645168764533
+  },
+  {
+    "step": 6000,
+    "avg_reward": 274.1049728627359,
+    "success_rate": 0.91,
+    "epsilon": 0.00998645168764533
+  },
+  {
+    "step": 8000,
+    "avg_reward": 272.9953506204672,
+    "success_rate": 0.92,
+    "epsilon": 0.00998645168764533
+  },
+  {
+    "step": 10000,
+    "avg_reward": 283.0664995761988,
+    "success_rate": 0.94,
+    "epsilon": 0.00998645168764533
+  },
+  {
+    "step": 12000,
+    "avg_reward": 279.03831239656074,
+    "success_rate": 0.94,
+    "epsilon": 0.00998645168764533
+  },
+  {
+    "step": 14000,
+    "avg_reward": 280.6087126947401,
+    "success_rate": 0.94,
+    "epsilon": 0.00998645168764533
+  },
+  {
+    "step": 16000,
+    "avg_reward": 291.87230609010237,
+    "success_rate": 0.97,
+    "epsilon": 0.00998645168764533
+  },
+  {
+    "step": 18000,
+    "avg_reward": 292.0159664261913,
+    "success_rate": 0.97,
+    "epsilon": 0.00998645168764533
+  },
+  {
+    "step": 20000,
+    "avg_reward": 292.88237824586037,
+    "success_rate": 0.98,
+    "epsilon": 0.00998645168764533
+  },
+  {
+    "step": 22000,
+    "avg_reward": 262.63970777974936,
+    "success_rate": 0.91,
+    "epsilon": 0.00998645168764533
+  },
+  {
+    "step": 24000,
+    "avg_reward": 267.0464666384589,
+    "success_rate": 0.92,
+    "epsilon": 0.00998645168764533
+  },
+  {
+    "step": 26000,
+    "avg_reward": 262.74540536060465,
+    "success_rate": 0.91,
+    "epsilon": 0.00998645168764533
+  },
+  {
+    "step": 28000,
+    "avg_reward": 263.85004288904787,
+    "success_rate": 0.91,
+    "epsilon": 0.00998645168764533
+  },
+  {
+    "step": 30000,
+    "avg_reward": 262.7684149058327,
+    "success_rate": 0.91,
+    "epsilon": 0.00998645168764533
+  },
+  {
+    "step": 32000,
+    "avg_reward": 266.3703915506102,
+    "success_rate": 0.92,
+    "epsilon": 0.00998645168764533
+  },
+  {
+    "step": 34000,
+    "avg_reward": 265.28120879664783,
+    "success_rate": 0.92,
+    "epsilon": 0.00998645168764533
+  },
+  {
+    "step": 36000,
+    "avg_reward": 280.1572382078776,
+    "success_rate": 0.95,
+    "epsilon": 0.00998645168764533
+  },
+  {
+    "step": 38000,
+    "avg_reward": 280.2141016589334,
+    "success_rate": 0.95,
+    "epsilon": 0.00998645168764533
+  },
+  {
+    "step": 40000,
+    "avg_reward": 278.30351493493055,
+    "success_rate": 0.94,
+    "epsilon": 0.00998645168764533
+  },
+  {
+    "step": 42000,
+    "avg_reward": 279.5830969409588,
+    "success_rate": 0.93,
+    "epsilon": 0.00998645168764533
+  },
+  {
+    "step": 44000,
+    "avg_reward": 286.46033507459975,
+    "success_rate": 0.95,
+    "epsilon": 0.00998645168764533
+  },
+  {
+    "step": 46000,
+    "avg_reward": 286.2989903208694,
+    "success_rate": 0.95,
+    "epsilon": 0.00998645168764533
+  },
+  {
+    "step": 48000,
+    "avg_reward": 289.16354196840786,
+    "success_rate": 0.97,
+    "epsilon": 0.00998645168764533
+  },
+  {
+    "step": 50000,
+    "avg_reward": 289.3489772397468,
+    "success_rate": 0.97,
+    "epsilon": 0.00998645168764533
+  }
+]

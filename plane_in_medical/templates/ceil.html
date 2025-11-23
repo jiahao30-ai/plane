@@ -1,0 +1,461 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>导航栏设计</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', system-ui, sans-serif;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            padding-top: 70px;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            height: 70px;
+        }
+        @font-face {
+            font-family: 'AliMamaDaoLiTi';
+            src: url('/static/fonts/阿里妈妈刀隶体/AlimamaDaoLiTi.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+       .logo-text {
+    font-family: 'AliMamaDaoLiTi', 'Microsoft YaHei', sans-serif;
+    background: linear-gradient(to right, #ffffff, #00bfff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.7), 0 0 30px rgba(0, 188, 255, 0.6);
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+.logo {
+    font-size: 28px;
+    font-weight: 900;
+    color: white;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.logo:hover .logo-text {
+    animation: pulse 1.5s infinite ease-in-out;
+}
+        @keyframes shine {
+            to {
+                background-position: 200% center;
+            }
+        }
+
+        .logo-img {
+            height: 40px;
+            width: auto;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 5px;
+            margin: 0 20px;
+        }
+
+        .nav-item {
+            position: relative;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 16px;
+            font-weight: 500;
+            padding: 10px 12px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-link.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: #ffffff;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .nav-link:hover::after,
+        .nav-link.active::after {
+            width: 70%;
+        }
+
+        /* 图标样式 */
+        .nav-icon {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+            flex-shrink: 0;
+        }
+
+        /* 搜索框样式 */
+        .search-container {
+            flex: 0 1 200px;
+            display: flex;
+            justify-content: center;
+            margin: 0 10px;
+        }
+
+        .search-form {
+            display: flex;
+            width: 100%;
+            max-width: 200px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 20px 0 0 20px;
+            outline: none;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .search-button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 0 20px 20px 0;
+            background: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-button:hover {
+            background: white;
+        }
+
+        .search-icon {
+            width: 16px;
+            height: 16px;
+            fill: #1a2980;
+        }
+
+        /* 语言切换器样式 */
+        .language-switcher {
+            display: flex;
+            align-items: center;
+            margin-left: 40px;
+            margin-right: 0px;
+        }
+
+        .language-switcher label {
+            color: white;
+            margin-right: 8px;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .language-switcher select {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 14px;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 100px;
+        }
+
+        .language-switcher select:hover {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 移动端菜单按钮 */
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .menu-toggle span {
+            width: 25px;
+            height: 3px;
+            background: white;
+            margin: 3px 0;
+            transition: 0.3s;
+            border-radius: 2px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 15px;
+            }
+
+            .menu-toggle {
+                display: flex;
+            }
+
+            .nav-menu {
+                position: fixed;
+                left: -100%;
+                top: 70px;
+                flex-direction: column;
+                background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
+                width: 100%;
+                text-align: center;
+                transition: 0.4s ease;
+                box-shadow: 0 10px 27px rgba(0, 0, 0, 0.15);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 20px 0;
+            }
+
+            .nav-menu.active {
+                left: 0;
+            }
+
+            .nav-item {
+                margin: 15px 0;
+            }
+
+            .nav-link {
+                padding: 12px 20px;
+                font-size: 17px;
+                width: 80%;
+                margin: 0 auto;
+            }
+
+            .nav-link::after {
+                bottom: 0;
+            }
+            
+            .search-container {
+                display: none;
+            }
+            
+            .language-switcher {
+                display: none;
+            }
+        }
+
+        /* 页面内容示例 */
+        .content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.85);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .section h2 {
+            color: #1a2980;
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 600;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .section h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(to right, #1a2980, #26d0ce);
+            border-radius: 3px;
+        }
+
+        .section p {
+            color: #495057;
+            line-height: 1.7;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <img src="/static/images/logo2.png" alt="医飞速达" class="logo-img">
+                <span class="logo-text">医飞速达</span>
+            </a>
+
+            <ul class="nav-menu" id="navMenu">
+                <li class="nav-item">
+                    <a href="/main/" class="nav-link {% if request.path == '/main/' %}active{% endif %}">
+                        <svg class="nav-icon" viewBox="0 0 24 24">
+                            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                        </svg>
+                        {% trans "首页" %}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/chat/" class="nav-link {% if request.path == '/chat/' %}active{% endif %}">
+                        <!-- 在线提问图标：对话气泡 -->
+                        <svg class="nav-icon" viewBox="0 0 24 24">
+                            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+                        </svg>
+                        {% trans "在线提问" %}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/medicine/" class="nav-link {% if request.path == '/medicine/' %}active{% endif %}">
+                        <!-- 物资下单图标：医疗箱/急救包 -->
+                        <svg class="nav-icon" viewBox="0 0 24 24">
+                            <path d="M19 7h-3V6a3 3 0 0 0-3-3H8a3 3 0 0 0-3 3v1H2v10a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V7zm-8-1h4v1h-4V6zM9 11h2v2H9v2h2v-2h2v2h2v-2h2v-2h-2V9h-2v2H9v2zm3-7h2v2h-2V4z"/>
+                        </svg>
+                        {% trans "物资下单" %}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/order_execute/" class="nav-link {% if request.path == '/order_execute/' %}active{% endif %}">
+                        <!-- 订单查询图标：文件列表/清单 -->
+                        <svg class="nav-icon" viewBox="0 0 24 24">
+                            <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+                        </svg>
+                        {% trans "订单查询" %}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/mine/" class="nav-link {% if request.path == '/mine/' %}active{% endif %}">
+                        <svg class="nav-icon" viewBox="0 0 24 24">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        </svg>
+                        {% trans "我的" %}
+                    </a>
+                </li>
+            </ul>
+
+            <div class="search-container">
+                <form class="search-form" action="/search/" method="GET">
+                    <input type="text" class="search-input" name="q" placeholder="{% trans '搜索物资' %}">
+                    <button type="submit" class="search-button">
+                        <svg class="search-icon" viewBox="0 0 24 24">
+                            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+
+            <div class="language-switcher">
+                <form action="{% url 'set_language' %}" method="post">
+                    {% csrf_token %}
+                    <input name="next" type="hidden" value="{{ request.get_full_path }}">
+                    
+                    <select name="language" id="language-select" onchange="this.form.submit()">
+                        {% get_current_language as LANGUAGE_CODE %}
+                        {% get_available_languages as LANGUAGES %}
+                        {% for lang_code, lang_name in LANGUAGES %}
+                            <option value="{{ lang_code }}"{% if lang_code == LANGUAGE_CODE %} selected{% endif %}>
+                                {{ lang_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+
+            <div class="menu-toggle" id="menuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <script>
+        // 移动端菜单切换功能
+        const menuToggle = document.getElementById('menuToggle');
+        const navMenu = document.getElementById('navMenu');
+        
+        menuToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+        });
+    </script>
+</body>
+</html>

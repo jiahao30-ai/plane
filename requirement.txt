@@ -1,0 +1,45 @@
+项目的整体架构如下：
+            
+            前端展示层 (Web/移动端)
+                ↓
+            API网关层
+                ↓
+            业务逻辑层 (Django应用)
+                ↓
+            AI服务层 (阿里云百炼平台的Qwen-VL-Plus模型+强化学习模型)
+                ↓
+            数据存储层 (MySQL + Redis缓存)
+                ↓
+            第三方服务 (地图API、支付接口等)
+
+
+
+相关三方库以及版本
+Django 5.2.3
+
+
+项目入口:
+cd plane_in_medical
+
+启动项目:
+(前提条件: 启动mysql数据库
+方法1: 
+在命令行中输入mysql -u root -p
+然后输入密码即开启
+
+方法2:
+利用三方插件,如vscode中的数据库插件
+启动数据库
+)
+python manage.py runserver
+
+访问地址：
+http://127.0.0.1:8000/
+
+数据云存储平台: 七牛云:https://portal.qiniu.com/home
+
+大模型应用平台: 阿里云百炼: https://bailian.console.aliyun.com/#/home
+
+百度地图逆向解析地址API获取处: https://lbsyun.baidu.com/apiconsole/key
+
+字体素材库: https://www.iconfont.cn/

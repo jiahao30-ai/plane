@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>医飞速达 - 无人机药品配送平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        
+        /* 主体内容样式 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+
+        }
+        
+        /* 轮播图容器 - 修改为全宽 */
+        .carousel-container {
+            position: relative;
+            width: 100vw;
+            left: 50%;
+            right: 50%;
+            margin-left: -50vw;
+            margin-right: -50vw;
+            margin-bottom: 30px;
+            overflow: hidden;
+            border-radius: 0;
+        }
+        
+        /* 轮播图区域 */
+        .carousel {
+            height: 400px;
+            background-size: cover;
+            background-position: center;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            position: relative;
+            transition: background-image 0.5s ease;
+        }
+        
+        .carousel-overlay {
+            background: rgba(0, 0, 0, 0.5);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .carousel-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+        }
+        
+        .carousel h2 {
+            font-size: 36px;
+            margin-bottom: 15px;
+        }
+        
+        .carousel p {
+            font-size: 18px;
+            max-width: 700px;
+        }
+        
+        /* 轮播控制按钮 */
+        .carousel-control {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.3);
+            border: none;
+            color: white;
+            font-size: 24px;
+            padding: 15px;
+            cursor: pointer;
+            z-index: 5;
+            transition: all 0.3s ease;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .carousel-control:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .carousel-control.prev {
+            left: 20px;
+        }
+        
+        .carousel-control.next {
+            right: 20px;
+        }
+        
+        /* 轮播指示器 */
+        .carousel-indicators {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            z-index: 5;
+        }
+        
+        .carousel-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            margin: 0 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .carousel-indicator.active {
+            background: white;
+            transform: scale(1.2);
+        }
+        
+        /* 中间内容区域 */
+        .main-content {
+            display: flex;
+            margin-bottom: 40px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: -30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .text-content {
+            flex: 1;
+            padding: 40px;
+        }
+        
+        .text-content h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #17a2b8;
+        }
+        
+        .text-content p {
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .image-content {
+            flex: 1;
+            background: url('https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+        
+        /* 底部图片网格 */
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .grid-item {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .grid-item:hover {
+            transform: translateY(-5px);
+        }
+        
+        .grid-img {
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .grid-text {
+            padding: 15px;
+            text-align: center;
+        }
+        
+        /* 页脚样式 */
+        footer {
+            background-color: #222;
+            color: #fff;
+            padding: 40px 0 20px;
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        
+        .footer-section {
+            flex: 1;
+            min-width: 200px;
+            margin-bottom: 20px;
+        }
+        
+        .footer-section h3 {
+            color: #17a2b8;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .footer-section p, .footer-section a {
+            color: #bbb;
+            margin-bottom: 10px;
+            display: block;
+            text-decoration: none;
+        }
+        
+        .footer-section a:hover {
+            color: #17a2b8;
+        }
+        
+        .footer-bottom {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #444;
+            margin-top: 20px;
+            color: #bbb;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 900px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .image-content {
+                height: 300px;
+            }
+            
+            .image-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .navbar {
+                flex-direction: column;
+            }
+            
+            .nav-links {
+                margin-top: 15px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .nav-links li {
+                margin: 5px;
+            }
+            
+            .image-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .carousel {
+                height: 300px;
+            }
+            
+            .carousel h2 {
+                font-size: 24px;
+            }
+            
+            .carousel p {
+                font-size: 16px;
+            }
+            
+            .carousel-control {
+                padding: 10px;
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    {% include 'ceil.html' %}
+    <!-- 轮播图容器 -->
+    <div class="carousel-container">
+        <div class="carousel" style="background-image: url('https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');">
+            <div class="carousel-overlay"></div>
+            <div class="carousel-content">
+                <h2>无人机医疗配送解决方案</h2>
+                <p>快速、安全、高效的药品配送服务，为您的健康保驾护航</p >
+            </div>
+            
+            <!-- 控制按钮 -->
+            <button class="carousel-control prev">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="carousel-control next">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+            
+            <!-- 指示器 -->
+            <div class="carousel-indicators">
+                <div class="carousel-indicator active" data-index="0"></div>
+                <div class="carousel-indicator" data-index="1"></div>
+                <div class="carousel-indicator" data-index="2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主体内容 -->
+    <div class="container">
+        <!-- 中间内容区域 -->
+        <div class="main-content">
+            <div class="text-content">
+                <h2>关于医飞速达</h2>
+                <p>医飞速达是一家专注于无人机药品配送的高科技企业，致力于通过先进的无人机技术解决药品配送"最后一公里"的难题。</p >
+                <p>我们的无人机配送系统能够在复杂地形和交通拥堵情况下，快速将药品送达目的地，特别适用于紧急药品配送和偏远地区医疗服务。</p >
+                <p>通过智能路径规划和实时监控系统，我们确保每一次配送都安全可靠，全程可追溯，为医疗机构和患者提供安心保障。</p >
+                <p>目前，我们已经与全国超过200家医院和药店建立合作关系，每日完成配送任务超过1000次，配送准确率达到99.9%。</p >
+            </div>
+            <div class="image-content"></div>
+        </div>
+
+        <!-- 底部图片网格 -->
+        <div class="image-grid">
+            <div class="grid-item">
+                <div class="grid-img" style="background-image: url('https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');"></div>
+                <div class="grid-text">
+                    <h3>快速配送</h3>
+                    <p>平均配送时间比传统方式缩短70%</p >
+                </div>
+            </div>
+            <div class="grid-item">
+                <div class="grid-img" style="background-image: url('https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');"></div>
+                <div class="grid-text">
+                    <h3>全天候服务</h3>
+                    <p>24小时不间断配送，应对紧急需求</p >
+                </div>
+            </div>
+            <div class="grid-item">
+                <div class="grid-img" style="background-image: url('/static/images/temperature.jpg');"></div>
+                <div class="grid-text">
+                    <h3>智能温控</h3>
+                    <p>精准温度控制，保障药品有效性</p >
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const carousel = document.querySelector('.carousel');
+            const prevBtn = document.querySelector('.carousel-control.prev');
+            const nextBtn = document.querySelector('.carousel-control.next');
+            const indicators = document.querySelectorAll('.carousel-indicator');
+            
+            const images = [
+                "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+                "https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+                "/static/images/temperature.jpg"
+            ];
+            
+            const titles = [
+                "无人机医疗配送解决方案",
+                "24小时全天候紧急配送服务",
+                "智能温控保障药品安全"
+            ];
+            
+            const descriptions = [
+                "快速、安全、高效的药品配送服务，为您的健康保驾护航",
+                "应对紧急医疗需求，缩短配送时间，拯救更多生命",
+                "精准温度控制系统，确保药品在运输过程中保持最佳状态"
+            ];
+            
+            let currentIndex = 0;
+            let autoPlayInterval;
+            
+            // 更新轮播内容
+            function updateCarousel() {
+                carousel.style.backgroundImage = `url('${images[currentIndex]}')`;
+                carousel.querySelector('h2').textContent = titles[currentIndex];
+                carousel.querySelector('p').textContent = descriptions[currentIndex];
+                
+                // 更新指示器
+                indicators.forEach((indicator, index) => {
+                    if (index === currentIndex) {
+                        indicator.classList.add('active');
+                    } else {
+                        indicator.classList.remove('active');
+                    }
+                });
+            }
+            
+            // 切换到下一张
+            function nextSlide() {
+                currentIndex = (currentIndex + 1) % images.length;
+                updateCarousel();
+            }
+            
+            // 切换到上一张
+            function prevSlide() {
+                currentIndex = (currentIndex - 1 + images.length) % images.length;
+                updateCarousel();
+            }
+            
+            // 开始自动播放
+            function startAutoPlay() {
+                autoPlayInterval = setInterval(nextSlide, 5000);
+            }
+            
+            // 停止自动播放
+            function stopAutoPlay() {
+                clearInterval(autoPlayInterval);
+            }
+            
+            // 事件监听
+            prevBtn.addEventListener('click', function() {
+                stopAutoPlay();
+                prevSlide();
+                startAutoPlay();
+            });
+            
+            nextBtn.addEventListener('click', function() {
+                stopAutoPlay();
+                nextSlide();
+                startAutoPlay();
+            });
+            
+            // 指示器点击事件
+            indicators.forEach(indicator => {
+                indicator.addEventListener('click', function() {
+                    stopAutoPlay();
+                    currentIndex = parseInt(this.getAttribute('data-index'));
+                    updateCarousel();
+                    startAutoPlay();
+                });
+            });
+            
+            // 鼠标悬停时暂停自动播放
+            carousel.addEventListener('mouseenter', stopAutoPlay);
+            carousel.addEventListener('mouseleave', startAutoPlay);
+            
+            // 初始化自动播放
+            startAutoPlay();
+        });
+    </script>
+    {% include 'footer.html' %}
+</body>
+</html>

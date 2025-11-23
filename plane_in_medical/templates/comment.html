@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="zh">
+<head>
+    <meta charset="utf-8">
+    <title>{{ context.medicine_name }} - 详情</title>
+    <style>
+        body{font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",SimSun,sans-serif;margin:0;background:#f7f8fa;color:#333}
+        .card{max-width:800px;margin:40px auto;background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden}
+        .header{padding:24px 32px;border-bottom:1px solid #eee}
+        .header h1{margin:0 0 8px;font-size:24px;font-weight:600}
+        .tag{display:inline-block;padding:4px 10px;background:#e6f7ff;color:#1890ff;border-radius:4px;font-size:13px}
+        .body{display:flex;gap:32px;padding:32px}
+        .left{flex:0 0 280px}
+        .left img{width:100%;height:auto;border-radius:6px}
+        .right{flex:1}
+        .section{margin-bottom:24px}
+        .section h3{margin:0 0 12px;font-size:16px;font-weight:600}
+        .section p{line-height:1.7;margin:0}
+        .comment{display:flex;align-items:flex-start;gap:12px;margin-top:24px;padding:16px;background:#fafafa;border-radius:6px}
+        .comment img.avatar{width:40px;height:40px;border-radius:50%;object-fit:cover}
+        .comment .info{flex:1}
+        .comment .username{font-weight:600;margin-bottom:4px}
+        .comment .content{color:#555;line-height:1.6}
+        /* 评论区输入 */
+#comment-form{
+    margin-top:24px;
+    display:flex;
+    gap:12px;
+}
+#comment-form textarea{
+    flex:1;
+    resize:none;
+    height:70px;
+    padding:10px 12px;
+    border:1px solid #ddd;
+    border-radius:6px;
+    font-size:14px;
+    font-family:inherit;
+}
+#comment-form button{
+    align-self:flex-end;
+    padding:8px 20px;
+    background:#1890ff;
+    color:#fff;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:14px;
+}
+#comment-form button:hover{background:#40a9ff;}
+.del-btn{
+    float:right;
+    color:#999;
+    cursor:pointer;
+    font-size:12px;
+    margin-left:6px;
+}
+.del-btn:hover{color:#e54545;}
+    </style>
+</head>
+<body>
+    {% include "ceil.html" %}
+<div class="card">
+    <!-- 头部 -->
+    <div class="header">
+        <h1>{{ context.medicine_name }}</h1>
+        <span class="tag">{{ context.kind }}</span>
+    </div>
+
+    <!-- 主体 -->
+    <div class="body">
+        <!-- 左侧图片 -->
+        <div class="left">
+            <img src="{{ context.image }}" alt="{{ context.medicine_name }}">
+        </div>
+
+        <!-- 右侧信息 -->
+        <div class="right">
+            <div class="section">
+                <h3>药品介绍</h3>
+                <p>{{ context.introduction|linebreaksbr }}</p>
+            </div>
+
+            <!-- 评论区（目前只取了一条） -->
+            <!-- 接上面模板，只贴改动部分 -->
+<div class="section">
+    <h3>用户评价</h3>
+
+    <!-- 已有评论列表 -->
+    <div id="comment-list">
+    {% for c in context.commentxs %}
+<div class="comment" data-cid="{{ c.id }}">
+    <img class="avatar" src="{{ c.name.avatar.url }}" alt="">
+    <div class="info">
+        <div class="username">
+            {{ c.name.username }}
+            {% if user == c.name %}   {# 只能删自己的 #}
+            <span class="del-btn" title="删除">✖</span>
+            {% endif %}
+        </div>
+        <div class="content">{{ c.content }}</div>
+    </div>
+</div>
+{% endfor %}
+</div>
+
+    <!-- 登录才可评论 -->
+    {% if user.is_authenticated %}
+        <form id="comment-form" method="post" action="{% url 'post_comment' context.medicine_name.id %}">
+            {% csrf_token %}
+            <textarea name="text" maxlength="300" placeholder="写下你的使用感受…" required></textarea>
+            <button type="submit">发表评价</button>
+        </form>
+    {% else %}
+        <p style="margin-top:16px"><a href="{% url 'login' %}?next={{ request.path }}">登录后即可评论</a></p>
+    {% endif %}
+</div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script>
+$('#comment-form').on('submit', function(e){
+    e.preventDefault();
+    const $form = $(this);
+    $.post($form.attr('action'), $form.serialize(), function(res){
+        if(res.ok){
+            $('#comment-list').append(res.html);
+            $('#no-comment').remove();
+            $form[0].reset();
+        }else{
+            alert(res.msg);
+        }
+    });
+});
+// 删除评论
+$(document).on('click', '.del-btn', function(){
+    const $comment = $(this).closest('.comment');
+    const cid = $comment.data('cid');
+    if(!confirm('确定删除这条评论？')) return;
+
+    fetch("{% url 'delete_comment' 0 %}".replace('0', cid), {
+        method: 'DELETE',
+        headers: {
+            'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+        }
+    })
+    .then(res => res.json())
+    .then(res => {
+        if(res.ok){
+            $comment.fadeOut(200, () => $comment.remove());
+            if($('.comment').length === 0)
+                $('#comment-list').append('<p id="no-comment" style="color:#999">暂无评价，来做第一个评论的人吧~</p>');
+        }else{
+            alert('删除失败');
+        }
+    });
+});
+</script>
+{% include "footer.html" %}
+</body>
+</html>

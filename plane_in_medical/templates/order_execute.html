@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>医飞速达-订单查询</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .order-list {
+            margin-top: 20px;
+        }
+        .order-item {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #fff;
+        }
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .order-id {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .order-status {
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-size: 14px;
+        }
+        .status-delivering {
+            background-color: #e6f7ff;
+            color: #1890ff;
+        }
+        .status-completed {
+            background-color: #f6ffed;
+            color: #52c41a;
+        }
+        .order-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .detail-item {
+            margin-bottom: 5px;
+        }
+        .detail-label {
+            font-weight: bold;
+            color: #666;
+        }
+        .items-list {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+        .item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+        .empty-icon {
+            font-size: 50px;
+            margin-bottom: 20px;
+            color: #ccc;
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .action-btn {
+            padding: 10px 20px;
+            background-color: #1890ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 150px;
+            text-align: center;
+        }
+        .action-btn:hover {
+            background-color: #40a9ff;
+        }
+        .delete-all-btn {
+            background-color: #ff7a45;
+        }
+        .delete-all-btn:hover {
+            background-color: #ff9c6e;
+        }
+        .view-details-btn, .delete-btn {
+            display: inline-block;
+            padding: 6px 12px;
+            background-color: #1890ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            text-decoration: none;
+            margin-top: 5px;
+            margin-right: 5px;
+        }
+        .view-details-btn:hover, .delete-btn:hover {
+            background-color: #40a9ff;
+        }
+        .delete-btn {
+            background-color: #ff4d4f;
+        }
+        .delete-btn:hover {
+            background-color: #ff7875;
+        }
+        .confirm-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .confirm-modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 300px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .confirm-buttons {
+            margin-top: 20px;
+        }
+        .confirm-btn {
+            padding: 8px 16px;
+            margin: 0 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .confirm-yes {
+            background-color: #ff4d4f;
+            color: white;
+        }
+        .confirm-no {
+            background-color: #1890ff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    {% include 'ceil.html' %}
+    <div class="container">
+        <h1>订单查询</h1>
+        
+        <div class="action-buttons">
+            <button class="action-btn" id="refreshBtn">刷新订单</button>
+            <button class="action-btn delete-all-btn" id="deleteAllBtn">删除所有订单</button>
+        </div>
+        
+        <div id="orderContainer">
+            <!-- 订单列表将通过JavaScript动态生成 -->
+        </div>
+    </div>
+
+    <!-- 确认删除模态框 -->
+    <div id="confirmModal" class="confirm-modal">
+        <div class="confirm-modal-content">
+            <p>确定要删除这个订单吗？</p>
+            <div class="confirm-buttons">
+                <button class="confirm-btn confirm-yes" id="confirmYes">确定</button>
+                <button class="confirm-btn confirm-no" id="confirmNo">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 确认删除所有订单模态框 -->
+    <div id="confirmAllModal" class="confirm-modal">
+        <div class="confirm-modal-content">
+            <p>确定要删除所有订单吗？</p>
+            <div class="confirm-buttons">
+                <button class="confirm-btn confirm-yes" id="confirmAllYes">确定</button>
+                <button class="confirm-btn confirm-no" id="confirmAllNo">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const orderContainer = document.getElementById('orderContainer');
+            const refreshBtn = document.getElementById('refreshBtn');
+            const deleteAllBtn = document.getElementById('deleteAllBtn');
+            const confirmModal = document.getElementById('confirmModal');
+            const confirmAllModal = document.getElementById('confirmAllModal');
+            const confirmYes = document.getElementById('confirmYes');
+            const confirmNo = document.getElementById('confirmNo');
+            const confirmAllYes = document.getElementById('confirmAllYes');
+            const confirmAllNo = document.getElementById('confirmAllNo');
+            
+            let orderIdToDelete = null;
+            
+            // 初始加载订单
+            fetchOrders();
+            
+            // 刷新按钮点击事件
+            refreshBtn.addEventListener('click', fetchOrders);
+            
+            // 删除所有订单按钮点击事件
+            deleteAllBtn.addEventListener('click', function() {
+                confirmAllModal.style.display = 'block';
+            });
+            
+            // 确认删除按钮事件
+            confirmYes.addEventListener('click', function() {
+                if (orderIdToDelete) {
+                    deleteOrder(orderIdToDelete);
+                    confirmModal.style.display = 'none';
+                    orderIdToDelete = null;
+                }
+            });
+            
+            // 取消删除按钮事件
+            confirmNo.addEventListener('click', function() {
+                confirmModal.style.display = 'none';
+                orderIdToDelete = null;
+            });
+            
+            // 确认删除所有订单按钮事件
+            confirmAllYes.addEventListener('click', function() {
+                deleteAllOrders();
+                confirmAllModal.style.display = 'none';
+            });
+            
+            // 取消删除所有订单按钮事件
+            confirmAllNo.addEventListener('click', function() {
+                confirmAllModal.style.display = 'none';
+            });
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', function(event) {
+                if (event.target === confirmModal) {
+                    confirmModal.style.display = 'none';
+                    orderIdToDelete = null;
+                }
+                if (event.target === confirmAllModal) {
+                    confirmAllModal.style.display = 'none';
+                }
+            });
+            
+            // 获取订单函数
+            function fetchOrders() {
+                fetch('/order_execute/', {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('网络响应不正常');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('接收到的数据:', data); // 调试信息
+                        renderOrders(data);
+                    })
+                    .catch(error => {
+                        console.error('获取订单失败:', error);
+                        orderContainer.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-icon">⚠️</div>
+                                <p>获取订单信息失败，请稍后再试</p>
+                                <p>${error.message}</p>
+                            </div>
+                        `;
+                    });
+            }
+            
+                    // 删除单个订单函数
+            function deleteOrder(orderId) {
+                fetch(`/delete_order/${orderId}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCSRFToken(),
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    // 首先检查HTTP状态码
+                    if (!response.ok) {
+                        throw new Error('网络响应不正常');
+                    }
+                    // 解析JSON响应
+                    return response.json();
+                })
+                .then(data => {
+                    // 检查后端返回的状态
+                    if (data.status === 'success') {
+                        // 删除成功后刷新订单列表
+                        fetchOrders();
+                    } else {
+                        throw new Error(data.message || '删除失败');
+                    }
+                })
+                .catch(error => {
+                    console.error('删除订单失败:', error);
+                    alert('删除订单失败: ' + error.message);
+                });
+            }
+            
+            // 删除所有订单函数
+            function deleteAllOrders() {
+                fetch('/delete_all_orders/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCSRFToken(),
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    // 首先检查HTTP状态码
+                    if (!response.ok) {
+                        throw new Error('网络响应不正常');
+                    }
+                    // 解析JSON响应
+                    return response.json();
+                })
+                .then(data => {
+                    // 检查后端返回的状态
+                    if (data.status === 'success') {
+                        // 删除成功后刷新订单列表
+                        fetchOrders();
+                    } else {
+                        throw new Error(data.message || '删除失败');
+                    }
+                })
+                .catch(error => {
+                    console.error('删除所有订单失败:', error);
+                    alert('删除所有订单失败: ' + error.message);
+                });
+            }
+            
+            // 获取CSRF Token
+            function getCSRFToken() {
+                const cookieValue = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)');
+                return cookieValue ? cookieValue.pop() : '';
+            }
+            
+            // 渲染订单函数
+            function renderOrders(data) {
+                console.log('渲染订单数据:', data); // 调试信息
+                console.log('数据类型:', typeof data); // 调试信息
+                
+                // 检查数据是否为对象且包含orders数组
+                let orders = [];
+                if (Array.isArray(data)) {
+                    orders = data;
+                } else if (data && typeof data === 'object' && Array.isArray(data.orders)) {
+                    orders = data.orders;
+                } else {
+                    console.error('订单数据格式不正确:', data);
+                    orderContainer.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">⚠️</div>
+                            <p>数据格式错误，请稍后再试</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                if (orders.length === 0) {
+                    orderContainer.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📦</div>
+                            <h3>暂无订单要进行处理</h3>
+                            <p>您当前没有需要处理的订单</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let ordersHTML = '<div class="order-list">';
+                
+                orders.forEach(order => {
+                    // 确定订单状态样式类
+                    let statusClass = 'status-delivering';
+                    let statusText = '送货中';
+                    let viewDetailsBtn = '';
+                    
+                    if (order.status === '已完成') {
+                        statusClass = 'status-completed';
+                        statusText = '已完成';
+                    } else if (order.status === '送货中') {
+                        // 为送货中状态添加查看具体情况按钮
+                        viewDetailsBtn = `<a href="/check_order/?order_id=${order.id}" class="view-details-btn">查看具体情况</a>`;
+                    }
+                    
+                    // 构建商品列表
+                    let itemsHTML = '';
+                    if (order.items && Array.isArray(order.items) && order.items.length > 0) {
+                        itemsHTML = '<div class="items-list"><div class="detail-label">商品列表:</div>';
+                        order.items.forEach(item => {
+                            itemsHTML += `
+                                <div class="item">
+                                    <span>${item.name} × ${item.quantity}</span>
+                                    <span>¥${(item.price * item.quantity).toFixed(2)}</span>
+                                </div>
+                            `;
+                        });
+                        itemsHTML += '</div>';
+                    }
+                    
+                    ordersHTML += `
+                        <div class="order-item">
+                            <div class="order-header">
+                                <span class="order-id">订单号: ${order.id || 'N/A'}</span>
+                                <div>
+                                    <div class="order-status ${statusClass}">
+                                        ${statusText}
+                                    </div>
+                                    ${viewDetailsBtn}
+                                    <button class="delete-btn" data-order-id="${order.id}">删除订单</button>
+                                </div>
+                            </div>
+                            <div class="order-details">
+                                <div class="detail-item">
+                                    <span class="detail-label">收货人:</span>
+                                    <span>${order.customer_name || '未提供'}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">配送地址:</span>
+                                    <span>${order.full_address || '未提供'}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">订单金额:</span>
+                                    <span>¥${order.amount ? order.amount.toFixed(2) : '0.00'}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">商品总数:</span>
+                                    <span>${order.item_count || 0}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">备注:</span>
+                                    <span>${order.notes || '无'}</span>
+                                </div>
+                            </div>
+                            ${itemsHTML}
+                        </div>
+                    `;
+                });
+                
+                ordersHTML += '</div>';
+                orderContainer.innerHTML = ordersHTML;
+                
+                // 为删除按钮添加事件监听器
+                document.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        orderIdToDelete = this.getAttribute('data-order-id');
+                        confirmModal.style.display = 'block';
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>医飞速达——在线提问</title>
+<style>
+/* -------------- 通用 -------------- */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4edf9 100%);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* -------------- 顶部栏 -------------- */
+.header {
+  background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
+  color: #fff;
+  line-height: 50px;
+  text-align: center;
+  font-size: 18px;
+  letter-spacing: 1px;
+  position: relative;
+  z-index: 10;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+.header .back {
+  position: absolute;
+  left: 15px;
+  top: 0;
+  font-size: 20px;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s;
+}
+.header .back:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+.header .clear-history {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 15px;
+  padding: 4px 12px;
+  color: white;
+  transition: background 0.3s;
+}
+.header .clear-history:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* -------------- 消息区 -------------- */
+.chat-area {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 15px 12px 20px;
+  background: url('/static/images/chat-bg.png') center/cover no-repeat, 
+              linear-gradient(135deg, #f9fbfd 0%, #f0f4f9 100%);
+}
+.chat-area::-webkit-scrollbar { width: 6px; }
+.chat-area::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.05); }
+.chat-area::-webkit-scrollbar-thumb { 
+  background: #c0c4cc; 
+  border-radius: 3px;
+}
+.chat-area::-webkit-scrollbar-thumb:hover { background: #a0a4aa; }
+
+/* 时间线 */
+.time-split {
+  text-align: center;
+  font-size: 12px;
+  color: #8492a6;
+  margin: 15px 0;
+  position: relative;
+}
+.time-split:before,
+.time-split:after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 30%;
+  height: 1px;
+  background: #e0e6ed;
+}
+.time-split:before {
+  left: 0;
+}
+.time-split:after {
+  right: 0;
+}
+
+/* 气泡 */
+.msg {
+  display: flex;
+  align-items: flex-start;
+  margin: 15px 0;
+  animation: fadeIn .3s;
+}
+.msg.me { flex-direction: row-reverse; }
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #ccc;
+  object-fit: cover;
+  flex-shrink: 0;
+  align-self: flex-end;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.bubble {
+  max-width: 70%;
+  padding: 12px 15px;
+  border-radius: 18px;
+  font-size: 15px;
+  line-height: 1.5;
+  word-break: break-all;
+  position: relative;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+.msg.me .bubble {
+  background: linear-gradient(120deg, #4fd09e 0%, #26d0ce 100%);
+  color: white;
+  margin-right: 12px;
+  border-bottom-right-radius: 4px;
+}
+.msg.ai .bubble {
+  background: #fff;
+  color: #333;
+  margin-left: 12px;
+  border-bottom-left-radius: 4px;
+}
+
+/* 图片消息 */
+.image-message {
+  max-width: 200px;
+  border-radius: 12px;
+  margin: 5px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* 药品推荐 */
+.medicine-recommendations {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px dashed #e0e6ed;
+}
+
+.medicine-recommendations h4 {
+  margin: 0 0 12px 0;
+  color: #1a2980;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.medicine-recommendations h4:before {
+  content: "💊";
+  margin-right: 8px;
+}
+
+.medicine-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+  gap: 12px;
+}
+
+.medicine-card {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 10px 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  text-align: center;
+  cursor: pointer;
+  border: 1px solid #ebeef5;
+}
+.msg.ai .medicine-card {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.medicine-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #26d0ce;
+}
+
+.medicine-image {
+  width: 100%;
+  height: 60px;
+  object-fit: contain;
+  border-radius: 8px;
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #8492a6;
+  margin-bottom: 8px;
+  border: 1px solid #ebeef5;
+  overflow: hidden;
+}
+
+.medicine-image img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.medicine-name {
+  font-size: 12px;
+  font-weight: 500;
+  margin: 3px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #333;
+}
+
+/* Markdown 样式 */
+.bubble h1, .bubble h2, .bubble h3 {
+  margin: 12px 0 8px 0;
+  font-weight: 600;
+  color: #1a2980;
+}
+.bubble h1 {
+  font-size: 1.4em;
+  border-bottom: 1px solid #e0e6ed;
+  padding-bottom: 6px;
+}
+.bubble h2 {
+  font-size: 1.25em;
+  border-bottom: 1px solid #e4e7ed;
+  padding-bottom: 6px;
+}
+.bubble h3 {
+  font-size: 1.1em;
+}
+.bubble p {
+  margin: 0 0 10px 0;
+}
+.bubble ul, .bubble ol {
+  margin: 10px 0;
+  padding-left: 22px;
+}
+.bubble li {
+  margin: 6px 0;
+}
+.bubble code {
+  background-color: rgba(26, 41, 128, 0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  color: #1a2980;
+}
+.msg.me .bubble code {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+.bubble pre {
+  background-color: #f4f7fa;
+  padding: 12px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 12px 0;
+  border: 1px solid #ebeef5;
+}
+.bubble pre code {
+  background: none;
+  padding: 0;
+  color: #333;
+}
+.msg.me .bubble pre code {
+  color: #333;
+}
+.bubble blockquote {
+  border-left: 4px solid #26d0ce;
+  margin: 12px 0;
+  padding: 8px 15px;
+  background: rgba(38, 208, 206, 0.05);
+  border-radius: 0 8px 8px 0;
+}
+.msg.me .bubble blockquote {
+  border-left-color: white;
+  background: rgba(255, 255, 255, 0.15);
+}
+.bubble a {
+  color: #1a2980;
+  text-decoration: none;
+  border-bottom: 1px dashed #1a2980;
+}
+.bubble a:hover {
+  color: #26d0ce;
+  border-bottom-style: solid;
+}
+.msg.me .bubble a {
+  color: white;
+  border-bottom: 1px dashed white;
+}
+.msg.me .bubble a:hover {
+  border-bottom: 1px solid white;
+}
+.bubble strong {
+  font-weight: 600;
+}
+.bubble em {
+  font-style: italic;
+}
+
+/* -------------- 底部输入区 -------------- */
+.input-bar {
+  background: #fff;
+  border-top: 1px solid #e0e6ed;
+  display: flex;
+  align-items: flex-end;
+  padding: 10px 12px;
+  flex-shrink: 0;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.input-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #f5f7fa;
+  border-radius: 20px;
+  border: 1px solid #e0e6ed;
+  margin-right: 10px;
+}
+
+#msgInput {
+  border: none;
+  border-radius: 20px;
+  padding: 12px 15px;
+  font-size: 15px;
+  outline: none;
+  resize: none;
+  max-height: 120px;
+  overflow-y: auto;
+  background: transparent;
+  min-height: 22px;
+}
+#msgInput:focus {
+  border-color: #26d0ce;
+}
+
+.image-preview-container {
+  display: flex;
+  align-items: center;
+  margin: 8px 10px 0;
+  padding: 8px;
+  background: #f0f4f9;
+  border-radius: 12px;
+  display: none;
+}
+
+.image-preview {
+  max-height: 80px;
+  max-width: 80px;
+  border-radius: 8px;
+  margin-right: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e6ed;
+}
+
+.remove-image {
+  background: #e53935;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+#imageUpload {
+  display: none;
+}
+
+.image-upload-label {
+  background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  box-shadow: 0 3px 8px rgba(26, 41, 128, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.image-upload-label:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(26, 41, 128, 0.4);
+}
+
+#sendBtn {
+  background: linear-gradient(135deg, #07c160 0%, #26d0ce 100%);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 3px 8px rgba(7, 193, 96, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#sendBtn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(7, 193, 96, 0.4);
+}
+#sendBtn:active {
+  transform: scale(0.98);
+}
+
+/* 加载动画 */
+.loading {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top: 3px solid #07c160;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+.msg.ai .loading {
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-top: 3px solid #07c160;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* -------------- 确认对话框 -------------- */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.3s;
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 25px;
+  border: none;
+  border-radius: 12px;
+  width: 80%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  animation: slideIn 0.3s;
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  color: #333;
+  font-weight: 500;
+}
+
+.modal-buttons {
+  margin-top: 25px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.modal-buttons button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 15px;
+  transition: all 0.2s;
+}
+
+.confirm-btn {
+  background-color: #e53935;
+  color: white;
+  box-shadow: 0 3px 8px rgba(229, 57, 53, 0.3);
+}
+.confirm-btn:hover {
+  background-color: #d32f2f;
+  transform: translateY(-2px);
+}
+
+.cancel-btn {
+  background-color: #f5f5f5;
+  color: #666;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+.cancel-btn:hover {
+  background-color: #e0e0e0;
+  transform: translateY(-2px);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .bubble {
+    max-width: 85%;
+  }
+  
+  .medicine-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 10px;
+  }
+  
+  .medicine-card {
+    padding: 8px 6px;
+  }
+  
+  .medicine-name {
+    font-size: 11px;
+  }
+  
+  .header {
+    font-size: 17px;
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-area {
+    padding: 10px 8px 15px;
+  }
+  
+  .bubble {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+  
+  #msgInput {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+  
+  .image-preview {
+    max-height: 60px;
+    max-width: 60px;
+  }
+  
+  .modal-content {
+    width: 90%;
+    padding: 20px;
+  }
+}
+</style>
+</head>
+<body>
+{% include "ceil.html" %}
+<div class="header">
+  <span class="back" onclick="history.back()">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 19L9 13L15 7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+</span>
+  在线提问
+  <button class="clear-history" id="clearHistoryBtn">清空记录</button>
+</div>
+
+<div class="chat-area" id="chatArea">
+  <!-- 初始欢迎语 -->
+  <div class="time-split" id="currentTime"></div>
+  <div class="msg ai">
+    <img class="avatar" src="/static/images/logo.jpg"/>
+    <div class="bubble">你好，我是医飞速达智能助手，请问有什么可以帮您？<br>您可以上传图片让我帮您识别内容。</div>
+  </div>
+</div>
+
+<!-- 确认对话框 -->
+<div id="confirmModal" class="modal">
+  <div class="modal-content">
+    <h3>确认清空记录</h3>
+    <p>确定要清空所有聊天记录吗？</p>
+    <div class="modal-buttons">
+      <button class="confirm-btn" id="confirmClear">确定</button>
+      <button class="cancel-btn" id="cancelClear">取消</button>
+    </div>
+  </div>
+</div>
+
+<div class="input-bar">
+  <div class="input-container">
+    <textarea id="msgInput" placeholder="输入您想说的话..." rows="1"></textarea>
+    <div class="image-preview-container" id="imagePreviewContainer">
+      <img class="image-preview" id="imagePreview" src="" alt="Image preview">
+      <button class="remove-image" id="removeImage">×</button>
+    </div>
+  </div>
+  <div class="button-group">
+    <label for="imageUpload" class="image-upload-label">📎</label>
+    <input type="file" id="imageUpload" accept="image/*">
+    <button id="sendBtn">➤</button>
+  </div>
+</div>
+
+<script>
+/* ---------- 工具 ---------- */
+const $ = q => document.querySelector(q);
+const chatArea = $('#chatArea');
+const input = $('#msgInput');
+const imageUpload = $('#imageUpload');
+const imagePreviewContainer = $('#imagePreviewContainer');
+const imagePreview = $('#imagePreview');
+const removeImage = $('#removeImage');
+
+// 获取用户头像URL（从Django模板传递）
+const userAvatarUrl = '{% if user_avatar %}{{ user_avatar.url }}{% else %}https://cdn.jsdelivr.net/gh/lin09-assets/avatar/user.png{% endif %}';
+
+// 存储选中的图片文件
+let selectedImageFile = null;
+
+/* 滚动到底 */
+function scrollBottom() {
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+// 格式化时间显示（支持相对时间）
+function formatTimeDisplay(date) {
+    const now = new Date();
+    const msgDate = new Date(date);
+
+    // 计算时间差（单位：毫秒）
+    const diffInHours = (now - msgDate) / (1000 * 60 * 60);
+
+    if (diffInHours < 24) {
+        return '今天';
+    } else if (diffInHours < 48) {
+        return '昨天';
+    } else {
+        const year = msgDate.getFullYear();
+        const month = String(msgDate.getMonth() + 1).padStart(2, '0');
+        const day = String(msgDate.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+}
+
+// 更新时间显示（全局）
+function updateTimeDisplay() {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    document.getElementById('currentTime').textContent = `${hours}:${minutes}`;
+}
+
+// 创建时间分隔线（避免重复）
+function createTimeSplit(date) {
+    const timeDiv = document.createElement('div');
+    timeDiv.className = 'time-split';
+    timeDiv.textContent = formatTimeDisplay(date);
+    return timeDiv;
+}
+
+/* 简单的 Markdown 解析器 */
+function parseMarkdown(text) {
+  // 转义 HTML 特殊字符
+  text = text.replace(/&/g, '&amp;')
+             .replace(/</g, '&lt;')
+             .replace(/>/g, '&gt;');
+
+  // 代码块 (```code```)
+  text = text.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+
+  // 行内代码 (`code`)
+  text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+  // 粗体 (**text** 或 __text__)
+  text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/__(.*?)__/g, '<strong>$1</strong>');
+
+  // 斜体 (*text* 或 _text_)
+  text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  text = text.replace(/_(.*?)_/g, '<em>$1</em>');
+
+  // 链接 ([text](url))
+  text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+
+  // 引用 (> text)
+  text = text.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>');
+
+  // 无序列表 (* item 或 - item)
+  text = text.replace(/^[\*\-] (.+)$/gm, '<li>$1</li>');
+  text = text.replace(/(<li>.+<\/li>\n?)+/g, '<ul>$&</ul>');
+  text = text.replace(/<\/ul>\n?<ul>/g, '');
+
+  // 有序列表 (1. item)
+  text = text.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+  text = text.replace(/(<li>.+<\/li>\n?)+/g, '<ol>$&</ol>');
+  text = text.replace(/<\/ol>\n?<ol>/g, '');
+
+  // 标题 (# 标题)
+  text = text.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+  text = text.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+  text = text.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+  text = text.replace(/^#### (.*$)/gm, '<h4>$1</h4>');
+
+  // 换行符
+  text = text.replace(/\n/g, '<br>'); 
+  
+  return text;
+}
+
+/* 生成气泡 dom */
+function createBubble(content, side = 'me', timestamp = new Date(), imageSrc = null, medicines = null) {
+    // 如果这是第一条用户消息，先添加时间线
+    if (side === 'me' && chatArea.children.length === 2) { // 只有初始欢迎语时
+        chatArea.appendChild(createTimeSplit(timestamp));
+    }
+    
+    const div = document.createElement('div');
+    div.className = `msg ${side}`;
+    
+    // 根据消息来源选择头像
+    const avatarSrc = side === 'me' 
+        ? userAvatarUrl 
+        : '/static/images/logo.jpg';
+    
+    // 创建气泡元素但暂时不填充内容
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    
+    div.innerHTML = `<img class="avatar" src="${avatarSrc}"/>`;
+    div.appendChild(bubble);
+    
+    // 如果有图片，添加到气泡中
+    if (imageSrc && side === 'me') {
+        const img = document.createElement('img');
+        img.className = 'image-message';
+        img.src = imageSrc;
+        bubble.appendChild(img);
+        bubble.appendChild(document.createElement('br'));
+    }
+    
+    chatArea.appendChild(div);
+    scrollBottom();
+    
+    // 如果是AI消息，则使用流式输出
+    if (side === 'ai') {
+        streamText(bubble, content, medicines);
+    } else {
+        // 用户消息直接显示
+        bubble.innerHTML += formatMessageContent(content);
+        // 保存消息到 sessionStorage
+        saveMessageToHistory(content, side, timestamp, imageSrc, medicines);
+    }
+    
+    return bubble; // 返回气泡元素以便后续操作
+}
+
+/* 格式化消息内容，保留换行符 */
+function formatMessageContent(content) {
+    // 将换行符转换为<br>标签
+    return content.replace(/\n/g, '<br>');
+}
+
+/* 流式输出文本 */
+function streamText(element, text, medicines = null) {
+    let i = 0;
+    const speed = 20; // 打字速度（毫秒）
+    let timestamp = new Date(); // 记录开始时间
+    
+    function typeWriter() {
+        if (i < text.length) {
+            // 处理换行符
+            if (text.charAt(i) === '\n') {
+                element.innerHTML += '<br>';
+            } else {
+                element.innerHTML += text.charAt(i);
+            }
+            i++;
+            scrollBottom(); // 每次添加字符后滚动到底部
+            setTimeout(typeWriter, speed);
+        } else {
+            // 完成后解析 Markdown 并保存到历史记录
+            element.innerHTML = parseMarkdown(text);
+            
+            // 如果有推荐药品，添加药品推荐区域
+            if (medicines && medicines.length > 0) {
+                createMedicineRecommendations(element, medicines);
+            }
+            
+            saveMessageToHistory(text, 'ai', timestamp, null, medicines);
+        }
+    }
+    
+    typeWriter();
+}
+
+/* 创建药品推荐区域 */
+function createMedicineRecommendations(container, medicines) {
+    const recDiv = document.createElement('div');
+    recDiv.className = 'medicine-recommendations';
+    recDiv.setAttribute('data-medicines', JSON.stringify(medicines)); // 保存药品数据
+    
+    let medicineGridHtml = '';
+    for (let i = 0; i < medicines.length; i++) {
+        const med = medicines[i];
+        medicineGridHtml += `
+          <div class="medicine-card" onclick="viewMedicineDetail('${med.name}')">
+            <div class="medicine-image">
+              ${med.image ? `<img src="${med.image}" alt="${med.name}" onerror="this.parentElement.innerHTML='暂无图片'">` : '暂无图片'}
+            </div>
+            <div class="medicine-name">${med.name}</div>
+          </div>
+        `;
+    }
+    
+    recDiv.innerHTML = `
+      <h4>智能推荐药品：</h4>
+      <div class="medicine-grid">
+        ${medicineGridHtml}
+      </div>
+    `;
+    
+    container.appendChild(recDiv);
+}
+
+/* 查看药品详情（占位函数） */
+function viewMedicineDetail(medicineName) {
+    // 这里可以添加跳转到药品详情页的逻辑
+    console.log('查看药品详情:', medicineName);
+}
+// 判断是否需要插入时间分隔线
+function shouldInsertTimeSplit(lastMsgTime, currentMsgTime) {
+    if (!lastMsgTime) return true; // 第一条消息总是插入
+    const last = new Date(lastMsgTime);
+    const current = new Date(currentMsgTime);
+    const diffInHours = (current - last) / (1000 * 60 * 60);
+    return diffInHours >= 1; // 超过1小时才插入分隔线
+}
+/* 显示加载状态 */
+function showLoading() {
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'msg ai';
+    loadingDiv.id = 'loadingMessage';
+    loadingDiv.innerHTML = `
+        <img class="avatar" src="/static/images/logo.jpg"/>
+        <div class="bubble"><div class="loading"></div></div>`;
+    chatArea.appendChild(loadingDiv);
+    scrollBottom();
+    return loadingDiv; // 返回加载元素以便后续移除
+}
+
+/* 隐藏加载状态 */
+function hideLoading() {
+  const loadingElement = document.getElementById('loadingMessage');
+  if (loadingElement) {
+    loadingElement.remove();
+  }
+}
+
+/* 发送消息到后端 */
+async function sendToBackend(message, imageFile = null) {
+  try {
+    const formData = new FormData();
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    
+    if (imageFile) {
+      // 如果有图片，发送到 /execute_image_text/ 接口
+      formData.append('image', imageFile);
+      if (message) {
+        formData.append('text', message);
+      }
+      
+      const response = await fetch('/execute_image_text/', {
+        method: 'POST',
+        body: formData
+      });
+      
+      // 检查响应状态
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // 构造药品数据结构
+      const medicines = [];
+      if (data.medicines && data.images) {
+        for (let i = 0; i < data.medicines.length; i++) {
+          medicines.push({
+            name: data.medicines[i],
+            image: data.images[i]
+          });
+        }
+      }
+      
+      return {
+        answer: data.answer || data.text || '图片处理完成',
+        medicines: medicines
+      };
+    } else {
+      // 如果只有文本，发送到原来的接口
+      formData.append('question', message);
+      
+      const response = await fetch('', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+      
+      // 检查响应状态
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // 构造药品数据结构
+      const medicines = [];
+      if (data.medicines && data.images) {
+        for (let i = 0; i < data.medicines.length; i++) {
+          medicines.push({
+            name: data.medicines[i],
+            image: data.images[i]
+          });
+        }
+      }
+      
+      return {
+        answer: data.answer,
+        medicines: medicines
+      };
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    if (error instanceof SyntaxError) {
+      return {
+        answer: '抱歉，服务器返回了无效的响应格式。请稍后再试。',
+        medicines: []
+      };
+    }
+    return {
+      answer: '抱歉，处理您的请求时出现错误，请稍后再试。',
+      medicines: []
+    };
+  }
+}
+
+        /* ---------- 发送逻辑 ---------- */
+        async function send() {
+            const txt = input.value.trim();
+            const imageFile = selectedImageFile;
+            
+            // 必须有文本或图片才能发送
+            if (!txt && !imageFile) return;
+            
+            let imageUrl = null;
+            if (imageFile) {
+                imageUrl = URL.createObjectURL(imageFile);
+            }
+            
+            // 显示用户消息（包括图片）
+            createBubble(txt, 'me', new Date(), imageUrl);
+            input.value = '';
+            selectedImageFile = null;
+            imagePreviewContainer.style.display = 'none';
+            autoTextareaHeight();
+            
+            // 显示加载状态
+            const loadingElement = showLoading();
+            
+            // 发送到后端并获取回复
+            const reply = await sendToBackend(txt, imageFile);
+            
+            // 隐藏加载状态
+            loadingElement.remove();
+            
+            // 显示AI回复（流式输出）
+            createBubble(reply.answer, 'ai', new Date(), null, reply.medicines);
+        } 
+
+$('#sendBtn').onclick = send;
+input.onkeydown = e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    send();
+  }
+};
+
+// 处理图片上传
+imageUpload.onchange = function(e) {
+  const file = e.target.files[0];
+  if (file && file.type.startsWith('image/')) {
+    selectedImageFile = file;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      imagePreview.src = e.target.result;
+      imagePreviewContainer.style.display = 'flex';
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
+// 移除图片
+removeImage.onclick = function() {
+  selectedImageFile = null;
+  imageUpload.value = '';
+  imagePreviewContainer.style.display = 'none';
+};
+
+/* 输入框高度自适应 */
+function autoTextareaHeight() {
+  input.style.height = 'auto';
+  input.style.height = input.scrollHeight + 'px';
+}
+input.oninput = autoTextareaHeight;
+
+/* 保存消息到 sessionStorage */
+function saveMessageToHistory(content, side, timestamp, imageSrc = null, medicines = null) {
+  // 获取现有的消息历史
+  let history = JSON.parse(sessionStorage.getItem('chatHistory') || '[]');
+  
+  // 添加新消息
+  history.push({
+    content: content,
+    side: side,
+    timestamp: timestamp,
+    imageSrc: imageSrc,
+    medicines: medicines // 保存药品推荐信息
+  });
+  
+  // 保存到 sessionStorage
+  sessionStorage.setItem('chatHistory', JSON.stringify(history));
+}
+
+/* 从 sessionStorage 恢复聊天历史 */
+function restoreChatHistory() {
+  const history = JSON.parse(sessionStorage.getItem('chatHistory') || '[]');
+  
+  // 如果有历史消息，则清除默认的欢迎语（除了时间线）
+  if (history.length > 0) {
+    // 保留第一个时间线，移除欢迎语
+    while (chatArea.children.length > 1) {
+      chatArea.removeChild(chatArea.lastChild);
+    }
+    
+    // 恢复历史消息
+    history.forEach(msg => {
+      const timestamp = new Date(msg.timestamp);
+      createBubbleFromHistory(msg.content, msg.side, timestamp, msg.imageSrc, msg.medicines);
+    });
+  }
+}
+
+/* 从历史记录创建气泡（不保存到历史记录） */
+function createBubbleFromHistory(content, side, timestamp, imageSrc = null, medicines = null) {
+    // 如果这是第一条用户消息，先添加时间线
+    if (side === 'me' && chatArea.children.length === 1) { // 只有时间线时
+        chatArea.appendChild(createTimeSplit(timestamp));
+    }
+    
+    const div = document.createElement('div');
+    div.className = `msg ${side}`;
+    
+    // 根据消息来源选择头像
+    const avatarSrc = side === 'me' 
+        ? userAvatarUrl 
+        : '/static/images/logo.jpg';
+    
+    // 创建气泡元素
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    
+    // 如果有图片，添加到气泡中
+    if (imageSrc && side === 'me') {
+        const img = document.createElement('img');
+        img.className = 'image-message';
+        img.src = imageSrc;
+        bubble.appendChild(img);
+        bubble.appendChild(document.createElement('br'));
+    }
+    
+    // 直接设置内容（历史记录不需要流式输出）
+    if (side === 'ai') {
+        // AI消息需要解析Markdown
+        bubble.innerHTML += parseMarkdown(content);
+        // 如果有药品推荐信息，添加药品推荐区域
+        if (medicines && medicines.length > 0) {
+            createMedicineRecommendations(bubble, medicines);
+        }
+    } else {
+        // 用户消息直接显示
+        bubble.innerHTML += formatMessageContent(content);
+    }
+    
+    div.innerHTML = `<img class="avatar" src="${avatarSrc}"/>`;
+    div.appendChild(bubble);
+    
+    chatArea.appendChild(div);
+    scrollBottom();
+}
+
+/* 清除聊天历史 */
+function clearChatHistory() {
+  sessionStorage.removeItem('chatHistory');
+  // 重新加载页面以显示初始状态
+  location.reload();
+}
+
+/* 页面加载完成后更新时间 */
+document.addEventListener('DOMContentLoaded', function() {
+  updateTimeDisplay();
+  
+  // 十分钟更新一次时间显示
+  setInterval(updateTimeDisplay, 600000);
+
+  // 恢复聊天历史
+  restoreChatHistory();
+  
+  // 检查是否有未完成的请求
+  setTimeout(checkPendingRequests, 500);
+  
+  // 绑定清空历史记录按钮事件
+  document.getElementById('clearHistoryBtn').addEventListener('click', function() {
+    // 显示确认对话框
+    document.getElementById('confirmModal').style.display = 'block';
+  });
+  
+  // 绑定确认清空按钮事件
+  document.getElementById('confirmClear').addEventListener('click', function() {
+    clearChatHistory();
+    // 隐藏确认对话框
+    document.getElementById('confirmModal').style.display = 'none';
+  });
+  
+  // 绑定取消清空按钮事件
+  document.getElementById('cancelClear').addEventListener('click', function() {
+    // 隐藏确认对话框
+    document.getElementById('confirmModal').style.display = 'none';
+  });
+});
+
+// 监听页面可见性变化，当页面变为可见时恢复聊天历史
+document.addEventListener('visibilitychange', function() {
+  if (!document.hidden) {
+    restoreChatHistory();
+  }
+});
+
+// 监听页面显示事件（当用户从其他页面返回时触发）
+window.addEventListener('pageshow', function(event) {
+  // 如果是从缓存中加载的页面，则恢复聊天历史
+  if (event.persisted) {
+    restoreChatHistory();
+  }
+});
+
+// 点击模态框外部关闭模态框
+window.onclick = function(event) {
+  const modal = document.getElementById('confirmModal');
+  if (event.target == modal) {
+    modal.style.display = 'none';
+  }
+}
+// 添加消息到聊天区域（已修改）
+function addMessage(content, side, date, imageSrc = null, medicines = []) {
+    const chatArea = document.getElementById('chatArea');
+    const div = document.createElement('div');
+    div.className = `msg ${side}`;
+
+    // 设置时间
+    const timeDiv = document.createElement('div');
+    timeDiv.className = 'message-time';
+    timeDiv.textContent = formatTimeDisplay(date);
+    div.appendChild(timeDiv);
+
+    // 处理头像和气泡
+    const avatarSrc = side === 'me' 
+        ? userAvatarUrl 
+        : '/static/images/logo.jpg';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+
+    // 图片处理
+    if (imageSrc && side === 'me') {
+        const img = document.createElement('img');
+        img.className = 'image-message';
+        img.src = imageSrc;
+        bubble.appendChild(img);
+        bubble.appendChild(document.createElement('br'));
+    }
+
+    // 内容处理
+    if (side === 'ai') {
+        bubble.innerHTML += parseMarkdown(content);
+        if (medicines && medicines.length > 0) {
+            createMedicineRecommendations(bubble, medicines);
+        }
+    } else {
+        bubble.innerHTML += formatMessageContent(content);
+    }
+
+    div.innerHTML = `<img class="avatar" src="${avatarSrc}"/>`;
+    div.appendChild(bubble);
+    chatArea.appendChild(div);
+
+    // 插入时间分隔线（如果需要）
+    const lastMsg = chatArea.lastElementChild;
+    if (lastMsg && lastMsg.classList.contains('msg')) {
+        const lastMsgTime = lastMsg.querySelector('.message-time').textContent;
+        if (shouldInsertTimeSplit(lastMsgTime, formatTimeDisplay(date))) {
+            const timeSplit = createTimeSplit(date);
+            chatArea.appendChild(timeSplit);
+        }
+    }
+
+    scrollBottom();
+}
+/* 检查是否有未完成的请求 */
+function checkPendingRequests() {
+    // 检查是否有加载状态的消息
+    const loadingElement = document.getElementById('loadingMessage');
+    if (loadingElement) {
+        // 如果有加载状态，重新发送请求
+        // 这里需要从 sessionStorage 中获取最后一条用户消息
+        const history = JSON.parse(sessionStorage.getItem('chatHistory') || '[]');
+        if (history.length > 0) {
+            // 找到最后一条用户消息
+            let lastUserMessage = null;
+            for (let i = history.length - 1; i >= 0; i--) {
+                if (history[i].side === 'me') {
+                    lastUserMessage = history[i];
+                    break;
+                }
+            }
+            
+            if (lastUserMessage) {
+                // 重新发送请求
+                resendPendingRequest(lastUserMessage);
+            }
+        }
+    }
+}
+
+/* 重新发送未完成的请求 */
+async function resendPendingRequest(userMessage) {
+    // 显示加载状态
+    showLoading();
+    
+    try {
+        // 重新发送请求
+        const reply = await sendToBackend(userMessage.content, userMessage.imageSrc ? new File([], 'image') : null);
+        
+        // 隐藏加载状态
+        hideLoading();
+        
+        // 显示AI回复（流式输出）
+        createBubble(reply.answer, 'ai', new Date(), null, reply.medicines);
+    } catch (error) {
+        // 隐藏加载状态
+        hideLoading();
+        
+        // 显示错误信息
+        createBubble('抱歉，处理您的请求时出现错误，请稍后再试。', 'ai', new Date(), null, []);
+    }
+}
+</script>
+<!-- CSRF Token -->
+{% csrf_token %}
+</body>
+</html>

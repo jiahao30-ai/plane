@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>支付成功</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        
+        .success-container {
+            text-align: center;
+            padding: 40px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .success-icon {
+            font-size: 60px;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        p {
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 16px;
+        }
+        
+        .redirect-info {
+            font-size: 14px;
+            color: #888;
+            margin-top: 30px;
+        }
+        
+        .countdown {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        .order-id {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #333;
+            margin: 15px 0;
+            border: 1px dashed #ccc;
+        }
+    </style>
+</head>
+<body>
+    {% include "ceil.html" %}
+    <div class="success-container">
+        <div class="success-icon">✓</div>
+        <h1>支付成功！</h1>
+        <p>感谢您的购买，您的订单已支付成功。</p>
+        
+        {% if request.GET.order_id %}
+        <div>
+            <p>您的订单号是：</p>
+            <div class="order-id">{{ request.GET.order_id }}</div>
+        </div>
+        {% endif %}
+        
+        <p>我们正在处理您的订单，稍后将发送确认邮件到您的邮箱。</p>
+        
+        <div class="redirect-info">
+            <span id="countdown">3</span> 秒后将自动跳转到订单页面...
+        </div>
+    </div>
+
+        <script>
+    // 设置倒计时时间（秒）
+    let countdown = 3;
+    const countdownElement = document.getElementById('countdown');
+    // 获取URL中的订单ID
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('order_id');
+    
+    // 更新倒计时显示
+    function updateCountdown() {
+        countdownElement.textContent = countdown;
+        countdown--;
+        
+        if (countdown < 0) {
+            clearInterval(timer);
+            // 跳转到目标页面，并携带订单ID参数
+            // 修改为使用命名URL并正确传递参数
+            let redirectUrl = "/route/";
+            if (orderId) {
+                redirectUrl += '?order_id=' + encodeURIComponent(orderId);
+            }
+            window.location.href = redirectUrl;
+        }
+    }
+    
+    // 立即执行一次以显示初始值
+    updateCountdown();
+    
+    // 设置定时器，每秒更新一次
+    const timer = setInterval(updateCountdown, 1000);
+    
+    // 可选：添加手动跳转链接
+    setTimeout(() => {
+        const redirectInfo = document.querySelector('.redirect-info');
+        // 修改为使用命名URL并正确传递参数
+        let redirectLink = "/route/";
+        if (orderId) {
+            redirectLink += '?order_id=' + encodeURIComponent(orderId);
+        }
+        redirectInfo.innerHTML += '<br>如果没有自动跳转，请<a href="' + redirectLink + '" style="color:#4CAF50;text-decoration:none;">点击这里</a>。';
+    }, 1000);
+</script>
+</body>
+</html>

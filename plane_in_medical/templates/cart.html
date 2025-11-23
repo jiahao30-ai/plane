@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>购物车 - 医飞速达</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: white;
+            padding: 15px 0;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #4CAF50;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .cart-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .cart-items {
+            margin-bottom: 20px;
+        }
+
+        .cart-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .item-image {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 15px;
+        }
+
+        .item-info {
+            flex: 2;
+        }
+
+        .item-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .item-desc {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .item-price {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .item-quantity {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quantity-btn {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ddd;
+            background-color: #f8f9fa;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quantity-input {
+            width: 50px;
+            height: 30px;
+            text-align: center;
+            border: 1px solid #ddd;
+            margin: 0 5px;
+        }
+
+        .item-total {
+            flex: 1;
+            text-align: right;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            color: #ff4444;
+            cursor: pointer;
+            font-size: 18px;
+            margin-left: 15px;
+        }
+
+        .cart-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .cart-summary {
+            text-align: right;
+        }
+
+        .total-price {
+            font-size: 20px;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 15px;
+        }
+
+        .cart-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .cart-empty i {
+            font-size: 60px;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .cart-item {
+                flex-wrap: wrap;
+            }
+
+            .item-image {
+                width: 60px;
+                height: 60px;
+            }
+
+            .item-info {
+                flex: 1 1 100%;
+                margin-top: 10px;
+            }
+
+            .item-quantity, .item-total {
+                flex: auto;
+                margin-top: 10px;
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include "ceil.html" %}
+    
+    <header>
+        <div class="container header-content">
+            <h1><i class="fas fa-shopping-cart"></i> 我的购物车</h1>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="cart-container">
+            <div class="cart-header">
+                <h2>购物车物资</h2>
+                {% if cart_items %}
+                <button id="clearCartBtn" class="btn btn-secondary"><i class="fas fa-trash"></i> 清空购物车</button>
+                {% endif %}
+            </div>
+            
+            {% if cart_items %}
+            <div class="cart-items">
+                {% for item in cart_items %}
+                <div class="cart-item" data-id="{{ item.id }}">
+                    <img src="{{ item.image }}" alt="{{ item.name }}" class="item-image">
+                    <div class="item-info">
+                        <div class="item-title">{{ item.name }}</div>
+                        <div class="item-desc">{{ item.introduction|default:"暂无简介" }}</div>
+                        <div class="item-price">¥{{ item.price|floatformat:2 }}</div>
+                    </div>
+                    <div class="item-quantity">
+                        <button class="quantity-btn minus">-</button>
+                        <input type="text" class="quantity-input" value="{{ item.quantity|default:1 }}" data-original="{{ item.quantity|default:1 }}">
+                        <button class="quantity-btn plus">+</button>
+                    </div>
+                    <div class="item-total">¥{{ item.total_price|floatformat:2|default:"0.00" }}</div>
+                    <button class="remove-btn" title="移除商品"><i class="fas fa-times"></i></button>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="cart-actions">
+                <div>
+                    <a href="/medicine" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> 继续购物</a>
+                </div>
+                <div class="cart-summary">
+                    <div class="total-price">总计: ¥<span id="totalPrice">{{ total_price|floatformat:2 }}</span></div>
+                    <a href="/pay_view/" class="btn"><i class="fas fa-credit-card"></i> 去结算</a>
+                </div>
+            </div>
+            {% else %}
+            <div class="cart-empty">
+                <i class="fas fa-shopping-cart"></i>
+                <h3>购物车暂无物资</h3>
+                <p>您的购物车是空的，快去添加一些商品吧！</p>
+                <a href="/medicine" class="btn" style="margin-top: 20px;"><i class="fas fa-shopping-bag"></i> 去购物</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <script>
+        // CSRF token helper
+        function getCSRFToken() {
+            return document.querySelector('[name=csrfmiddlewaretoken]').value;
+        }
+        
+        // 更新商品数量
+        document.querySelectorAll('.quantity-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const cartItem = this.closest('.cart-item');
+                const medicineId = cartItem.getAttribute('data-id');
+                const input = cartItem.querySelector('.quantity-input');
+                let quantity = parseInt(input.value);
+                
+                if (this.classList.contains('plus')) {
+                    quantity++;
+                } else if (this.classList.contains('minus') && quantity > 1) {
+                    quantity--;
+                }
+                
+                input.value = quantity;
+                
+                // 更新商品数量
+                updateCartItem(medicineId, quantity);
+            });
+        });
+        
+        // 直接修改数量输入框
+        document.querySelectorAll('.quantity-input').forEach(input => {
+            input.addEventListener('change', function() {
+                const cartItem = this.closest('.cart-item');
+                const medicineId = cartItem.getAttribute('data-id');
+                let quantity = parseInt(this.value);
+                
+                if (isNaN(quantity) || quantity < 1) {
+                    quantity = 1;
+                    this.value = 1;
+                } else if (quantity > 99) {
+                    quantity = 99;
+                    this.value = 99;
+                }
+                
+                // 更新商品数量
+                updateCartItem(medicineId, quantity);
+            });
+        });
+        
+        // 移除商品
+        document.querySelectorAll('.remove-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const cartItem = this.closest('.cart-item');
+                const medicineId = cartItem.getAttribute('data-id');
+                
+                if (confirm('确定要移除这个商品吗？')) {
+                    removeCartItem(medicineId);
+                }
+            });
+        });
+        
+        // 清空购物车
+        document.getElementById('clearCartBtn').addEventListener('click', function() {
+            if (confirm('确定要清空购物车吗？')) {
+                clearCart();
+            }
+        });
+        
+        // 更新购物车商品数量
+        function updateCartItem(medicineId, quantity) {
+            fetch('/update_cart_item/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({
+                    medicine_id: medicineId,
+                    quantity: quantity
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // 更新总价
+                    document.getElementById('totalPrice').textContent = data.total_price.toFixed(2);
+                    // 更新单项总价
+                    const cartItem = document.querySelector(`.cart-item[data-id="${medicineId}"]`);
+                    if (cartItem) {
+                        const priceElement = cartItem.querySelector('.item-price');
+                        const price = parseFloat(priceElement.textContent.replace('¥', ''));
+                        cartItem.querySelector('.item-total').textContent = '¥' + (price * quantity).toFixed(2);
+                    }
+                } else {
+                    alert('更新失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('更新失败');
+            });
+        }
+        
+        // 移除购物车商品
+        function removeCartItem(medicineId) {
+            fetch('/remove_from_cart/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({
+                    medicine_id: medicineId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // 移除DOM元素
+                    const cartItem = document.querySelector(`.cart-item[data-id="${medicineId}"]`);
+                    if (cartItem) {
+                        cartItem.remove();
+                    }
+                    // 更新总价
+                    document.getElementById('totalPrice').textContent = data.total_price.toFixed(2);
+                } else {
+                    alert('移除失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('移除失败');
+            });
+        }
+        
+        // 清空购物车
+        function clearCart() {
+            fetch('/clear_cart/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // 重新加载页面
+                    location.reload();
+                } else {
+                    alert('清空失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('清空失败');
+            });
+        }
+    </script>
+    {% csrf_token %}
+</body>
+</html>

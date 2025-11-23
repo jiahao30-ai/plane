@@ -1,0 +1,701 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>{{ username }} · 医飞速达</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<style>
+:root{
+  --theme:linear-gradient(135deg,#1a2980 0%,#26d0ce 100%);
+  --bg:#f5f7fa;
+  --card:#fff;
+  --text:#333;
+  --sub:#666;
+  --border:#e5e5e5;
+  --primary:#1890ff;
+  --success:#52c41a;
+  --danger:#ff4d4f;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+a{text-decoration:none;color:inherit}
+
+.header-card{
+  background:var(--theme);color:#fff;padding:30px 20px 40px;
+  text-align:center;border-radius:0 0 20px 20px;
+  position:relative;
+}
+.avatar-container {
+  position: relative;
+  display: inline-block;
+}
+.avatar{
+  width:80px;height:80px;border-radius:50%;border:3px solid rgba(255,255,255,.5);
+  object-fit:cover;
+}
+.edit-overlay {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: rgba(0,0,0,0.5);
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+}
+.user-name{font-size:20px;margin-top:10px;font-weight:600}
+.user-bio{font-size:14px;margin-top:4px;opacity:.9}
+
+.container{padding:0 15px 30px;max-width:600px;margin:-20px auto 0}
+.section{background:var(--card);border-radius:12px;padding:0 15px;margin-bottom:15px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 0;border-bottom:1px solid var(--border);
+}
+.row:last-child{border:none}
+.label{font-size:15px}
+.value{
+  font-size:14px;color:var(--sub);display:flex;align-items:center;gap:6px;
+  cursor: pointer;
+}
+.arrow{color:#ccc;font-size:12px}
+
+/* 开关样式 */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 24px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+input:checked + .slider {
+  background-color: var(--primary);
+}
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+/* 编辑模态框样式 */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.modal-content {
+  background: white;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 400px;
+  overflow: hidden;
+}
+.modal-header {
+  background: var(--theme);
+  color: white;
+  padding: 15px 20px;
+  font-size: 16px;
+  font-weight: 500;
+}
+.modal-body {
+  padding: 20px;
+}
+.form-group {
+  margin-bottom: 15px;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 14px;
+  color: #333;
+}
+.form-group input, 
+.form-group textarea, 
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+}
+.form-group textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+.modal-footer {
+  display: flex;
+  padding: 15px 20px;
+  border-top: 1px solid #eee;
+}
+.btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  margin: 0 5px;
+}
+.btn-cancel {
+  background: #f5f5f5;
+  color: #666;
+}
+.btn-confirm {
+  background: var(--primary);
+  color: white;
+}
+.btn-danger {
+  background: var(--danger);
+  color: white;
+}
+.btn-confirm:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* 提示信息 */
+.toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.7);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  z-index: 2000;
+  display: none;
+}
+
+/* 退出按钮 */
+.logout-btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: var(--danger);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 20px;
+  text-align: center;
+}
+
+</style>
+</head>
+<body>
+  {% include "ceil.html" %}
+
+<!-- 顶部卡片 -->
+<div class="header-card">
+  <div class="avatar-container">
+    <img class="avatar" src="{{ avatar.url }}" onerror="this.src='https://cdn.jsdelivr.net/gh/lin09-assets/avatar/user.png'">
+    <div class="edit-overlay" onclick="openAvatarModal()">✏️</div>
+  </div>
+  <div class="user-name">{{ username }}{{ chenghu }}</div>
+  <div class="user-bio">{{ introduction|default:'暂无介绍' }}</div>
+</div>
+
+<div class="container">
+  <!-- 个人信息 -->
+  <div class="section">
+    <div class="row" onclick="openEditModal('username', '{{ username }}')">
+      <span class="label">昵称</span>
+      <span class="value">{{ username }}<span class="arrow">›</span></span>
+    </div>
+    <div class="row" onclick="openEditModal('sex', '{{ sex }}')">
+      <span class="label">性别</span>
+      <span class="value">
+        {% if sex == 'm' %}男{% else %}女{% endif %}
+        <span class="arrow">›</span>
+      </span>
+    </div>
+    <div class="row" onclick="openEditModal('introduction', '{{ introduction }}')">
+      <span class="label">介绍</span>
+      <span class="value">{{ introduction|default:'暂无' }}<span class="arrow">›</span></span>
+    </div>
+    <div class="row">
+      <span class="label">邮箱</span>
+      <span class="value">{{ email }}<span class="arrow">›</span></span>
+    </div>
+    <div class="row" onclick="viewHistory()">
+      <span class="label">历史消费记录</span>
+      <span class="value">查看全部 <span class="arrow">›</span></span>
+    </div>
+    </div>
+  <!-- 系统设置 -->
+  <div class="section">
+    <div class="row">
+      <span class="label">消息通知</span>
+      <label class="value switch">
+        <input type="checkbox" id="notificationSwitch" checked>
+        <span class="slider"></span>
+
+        
+      </label>
+    </div>
+    <div class="row" onclick="clearCache()">
+      <span class="label">清除缓存</span>
+      <span class="value">38.2 MB <span class="arrow">›</span></span>
+    </div>
+    <div class="row" onclick="changePassword()">
+      <span class="label">修改密码</span>
+      <span class="value"><span class="arrow">›</span></span>
+    </div>
+  </div>
+
+  <!-- 关于 -->
+  <div class="section">
+    <div class="row" onclick="showAbout()">
+      <span class="label">关于</span>
+      <span class="value">版本 1.0.0 <span class="arrow">›</span></span>
+    </div>
+  </div>
+  
+
+  <!-- 退出登录 -->
+  <button class="logout-btn" onclick="logout()">退出登录</button>
+</div>
+
+<!-- 编辑模态框 -->
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header" id="modalTitle">编辑信息</div>
+    <div class="modal-body">
+      <form id="editForm">
+        <input type="hidden" id="editField" name="field">
+        <div id="formContent"></div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-cancel" onclick="closeEditModal()">取消</button>
+      <button class="btn btn-confirm" onclick="saveChanges()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 头像上传模态框 -->
+<div id="avatarModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">修改头像</div>
+    <div class="modal-body">
+      <form id="avatarForm" enctype="multipart/form-data">
+        <div class="form-group">
+          <label>选择新头像</label>
+          <input type="file" id="avatarFile" name="avatar" accept="image/*">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-cancel" onclick="closeAvatarModal()">取消</button>
+      <button class="btn btn-confirm" onclick="uploadAvatar()">上传</button>
+    </div>
+  </div>
+</div>
+
+<!-- 修改密码模态框 -->
+<div id="passwordModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">修改密码</div>
+    <div class="modal-body">
+      <form id="passwordForm">
+        <div class="form-group">
+          <label>当前密码</label>
+          <input type="password" id="currentPassword" name="current_password" placeholder="请输入当前密码">
+        </div>
+        <div class="form-group">
+          <label>新密码</label>
+          <input type="password" id="newPassword" name="new_password" placeholder="请输入新密码">
+        </div>
+        <div class="form-group">
+          <label>确认新密码</label>
+          <input type="password" id="confirmPassword" name="confirm_password" placeholder="请再次输入新密码">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-cancel" onclick="closePasswordModal()">取消</button>
+      <button class="btn btn-confirm" onclick="updatePassword()">保存</button>
+    </div>
+  </div>
+</div>
+<!-- 消费记录模态框 -->
+<div id="billModal" class="modal">
+  <div class="modal-content" style="max-height:70vh;display:flex;flex-direction:column;">
+    <div class="modal-header">消费记录</div>
+    <div id="billList" class="modal-body" style="flex:1;overflow:auto;padding:0 15px 15px;">
+      <!-- 动态列表 -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-cancel" onclick="closeBillModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 提示信息 -->
+<div id="toast" class="toast"></div>
+
+<!-- 隐藏表单用于POST请求 -->
+<form id="historyForm" method="POST" action="/history/" style="display: none;">
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+</form>
+
+<script>
+// 当前编辑的字段
+let currentField = '';
+
+// 页面加载完成后初始化设置
+document.addEventListener('DOMContentLoaded', function() {
+  // 初始化设置状态
+  const darkMode = localStorage.getItem('darkMode') === 'true';
+  const notifications = localStorage.getItem('notifications') !== 'false';
+  
+  document.getElementById('darkModeSwitch').checked = darkMode;
+  document.getElementById('notificationSwitch').checked = notifications;
+  
+  // 应用深色模式
+  if (darkMode) {
+    applyDarkMode();
+  }
+});
+
+// 打开编辑模态框
+function openEditModal(field, currentValue) {
+  currentField = field;
+  document.getElementById('editField').value = field;
+  
+  let title = '';
+  let content = '';
+  
+  switch(field) {
+    case 'username':
+      title = '编辑昵称';
+      content = `
+        <div class="form-group">
+          <label>昵称</label>
+          <input type="text" id="editValue" name="username" value="${currentValue}" maxlength="150">
+        </div>
+      `;
+      break;
+    case 'sex':
+      title = '编辑性别';
+      const isMale = currentValue === 'm';
+      content = `
+        <div class="form-group">
+          <label>性别</label>
+          <select id="editValue" name="sex">
+            <option value="m" ${isMale ? 'selected' : ''}>男</option>
+            <option value="f" ${!isMale ? 'selected' : ''}>女</option>
+          </select>
+        </div>
+      `;
+      break;
+    case 'introduction':
+      title = '编辑个人介绍';
+      content = `
+        <div class="form-group">
+          <label>个人介绍</label>
+          <textarea id="editValue" name="introduction" maxlength="500">${currentValue === '暂无' ? '' : currentValue}</textarea>
+        </div>
+      `;
+      break;
+  }
+  
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('formContent').innerHTML = content;
+  document.getElementById('editModal').style.display = 'flex';
+}
+
+// 关闭编辑模态框
+function closeEditModal() {
+  document.getElementById('editModal').style.display = 'none';
+}
+
+// 保存更改
+function saveChanges() {
+  const formData = new FormData(document.getElementById('editForm'));
+  formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+  
+  // 禁用保存按钮防止重复提交
+  const saveBtn = document.querySelector('.btn-confirm');
+  saveBtn.disabled = true;
+  saveBtn.textContent = '保存中...';
+  
+  fetch('/user/update/', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    showToast(data.message);
+    if (data.status === 'success') {
+      setTimeout(() => {
+        location.reload();
+      }, 1000);
+    }
+  })
+  .catch(error => {
+    showToast('保存失败，请重试');
+    console.error('Error:', error);
+  })
+  .finally(() => {
+    saveBtn.disabled = false;
+    saveBtn.textContent = '保存';
+  });
+}
+
+// 打开头像模态框
+function openAvatarModal() {
+  document.getElementById('avatarModal').style.display = 'flex';
+}
+
+// 关闭头像模态框
+function closeAvatarModal() {
+  document.getElementById('avatarModal').style.display = 'none';
+}
+
+// 上传头像
+function uploadAvatar() {
+  const fileInput = document.getElementById('avatarFile');
+  if (!fileInput.files[0]) {
+    showToast('请选择头像文件');
+    return;
+  }
+  
+  const formData = new FormData();
+  formData.append('avatar', fileInput.files[0]);
+  formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+  
+  // 禁用上传按钮防止重复提交
+  const uploadBtn = document.querySelector('#avatarModal .btn-confirm');
+  uploadBtn.disabled = true;
+  uploadBtn.textContent = '上传中...';
+  
+  fetch('/user/update/', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    showToast(data.message);
+    if (data.status === 'success') {
+      setTimeout(() => {
+        location.reload();
+      }, 1000);
+    }
+  })
+  .catch(error => {
+    showToast('上传失败，请重试');
+    console.error('Error:', error);
+  })
+  .finally(() => {
+    uploadBtn.disabled = false;
+    uploadBtn.textContent = '上传';
+  });
+}
+
+// 显示提示信息
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.style.display = 'block';
+  setTimeout(() => {
+    toast.style.display = 'none';
+  }, 2000);
+}
+
+// 获取CSRF token
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+// 点击模态框外部关闭
+window.onclick = function(event) {
+  const editModal = document.getElementById('editModal');
+  const avatarModal = document.getElementById('avatarModal');
+  const passwordModal = document.getElementById('passwordModal');
+  
+  if (event.target === editModal) {
+    closeEditModal();
+  }
+  
+  if (event.target === avatarModal) {
+    closeAvatarModal();
+  }
+  
+  if (event.target === passwordModal) {
+    closePasswordModal();
+  }
+}
+
+
+// 消息通知切换
+document.getElementById('notificationSwitch').addEventListener('change', function() {
+  const isEnabled = this.checked;
+  localStorage.setItem('notifications', isEnabled);
+  showToast(isEnabled ? '消息通知已开启' : '消息通知已关闭');
+});
+
+// 清除缓存
+function clearCache() {
+  if (confirm('确定要清除缓存吗？')) {
+    localStorage.clear();
+    showToast('缓存已清除');
+    setTimeout(() => {
+      location.reload();
+    }, 1000);
+  }
+}
+
+// 修改密码
+function changePassword() {
+  document.getElementById('passwordModal').style.display = 'flex';
+}
+
+// 关闭密码模态框
+function closePasswordModal() {
+  document.getElementById('passwordModal').style.display = 'none';
+}
+
+// 更新密码
+function updatePassword() {
+  const currentPassword = document.getElementById('currentPassword').value;
+  const newPassword = document.getElementById('newPassword').value;
+  const confirmPassword = document.getElementById('confirmPassword').value;
+  
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    showToast('请填写所有密码字段');
+    return;
+  }
+  
+  if (newPassword !== confirmPassword) {
+    showToast('新密码与确认密码不一致');
+    return;
+  }
+  
+  if (newPassword.length < 6) {
+    showToast('密码长度至少6位');
+    return;
+  }
+  
+  // 创建表单数据
+  const formData = new FormData();
+  formData.append('old_password', currentPassword);
+  formData.append('new_password', newPassword);
+  formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+  
+  // 禁用保存按钮防止重复提交
+  const saveBtn = document.querySelector('#passwordModal .btn-confirm');
+  saveBtn.disabled = true;
+  saveBtn.textContent = '保存中...';
+  
+  // 发送到后端密码修改路径
+  fetch('/update_password/', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    showToast(data.message);
+    if (data.status === 'success') {
+      setTimeout(() => {
+        closePasswordModal();
+        // 可以选择重新加载页面或执行其他操作
+        // location.reload();
+      }, 1000);
+    }
+  })
+  .catch(error => {
+    showToast('密码修改失败，请重试');
+    console.error('Error:', error);
+  })
+  .finally(() => {
+    saveBtn.disabled = false;
+    saveBtn.textContent = '保存';
+  });
+}
+
+// 显示关于信息
+function showAbout() {
+  window.location.href = '/about/';
+}
+
+// 退出登录
+function logout() {
+  if (confirm('确定要退出登录吗？')) {
+    // 发送退出登录请求到后端
+    window.location.href = '/logout/';
+  }
+}
+
+// 查看历史消费记录
+function viewHistory() {
+  // 提交POST表单到/history/
+  document.getElementById('historyForm').submit();
+}
+
+/* ----- 消费记录 ----- */
+function openBillModal(){
+  document.getElementById('billModal').style.display = 'flex';
+  // 这里你自己发请求渲染列表
+}
+function closeBillModal(){
+  document.getElementById('billModal').style.display = 'none';
+}
+// 点击模态框外部关闭（复用已有逻辑，已包含 billModal）
+if (event.target === billModal) {
+  closeBillModal();
+}
+</script>
+{% include 'footer.html' %}
+</body>
+</html>

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>医飞速达 - 搜索结果</title>
+  <style>
+    /* 全局样式 */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+
+    /* 导航栏样式 */
+    nav {
+      background-color: #007bff;
+      color: white;
+      padding: 15px;
+      text-align: center;
+    }
+
+    /* 主要内容区域样式 */
+    .main-content {
+      padding: 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    h2 {
+      color: #007bff;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 10px;
+    }
+
+    /* 搜索结果列表样式 */
+    .search-results {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    .search-results li {
+      background-color: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s ease-in-out;
+      display: flex;
+      align-items: flex-start;
+    }
+
+    .search-results li:hover {
+      transform: translateY(-5px);
+    }
+
+    .search-results img {
+      max-width: 100px;
+      margin-right: 20px;
+      border-radius: 4px;
+    }
+
+    .search-results .info {
+      flex: 1;
+    }
+
+    .search-results h3 {
+      margin-top: 0;
+      color: #0056b3;
+    }
+
+    .search-results p {
+      line-height: 1.6;
+    }
+
+    .search-results .price {
+      color: #e53935;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    /* 加入购物车按钮样式 */
+    .add-to-cart-button {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin-top: 10px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+
+    .add-to-cart-button:hover {
+      background-color: #218838;
+    }
+
+    /* 已在购物车按钮样式 */
+    .in-cart-button {
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin-top: 10px;
+      cursor: not-allowed;
+      border-radius: 4px;
+    }
+
+    /* 页脚样式 */
+    footer {
+      background-color: #333;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      margin-top: 20px;
+    }
+
+    /* 提示框样式 */
+    .alert {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 15px 20px;
+      border-radius: 4px;
+      color: white;
+      font-weight: bold;
+      z-index: 1000;
+      display: none;
+    }
+
+    .alert-success {
+      background-color: #28a745;
+    }
+
+    .alert-error {
+      background-color: #dc3545;
+    }
+
+    /* 购物车入口样式 */
+    .cart-entry {
+      position: fixed;
+      bottom: 60px;
+      right: 20px;
+      width: 54px;
+      height: 54px;
+      background: #007bff;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 54px;
+      font-size: 22px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+      cursor: pointer;
+      z-index: 999;
+      transition: transform 0.2s;
+    }
+
+    .cart-entry:hover {
+      transform: scale(1.1);
+    }
+
+    .cart-count {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: #ff4757;
+      color: #fff;
+      font-size: 12px;
+      min-width: 18px;
+      height: 18px;
+      line-height: 18px;
+      border-radius: 9px;
+      padding: 0 4px;
+    }
+
+    /* 提示信息样式 */
+    .cart-tip {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,.7);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 4px;
+      display: none;
+      z-index: 9999;
+    }
+  </style>
+</head>
+
+<body>
+  {% include "ceil.html" %}
+  <!-- 提示框 -->
+  <div id="alert-message" class="alert"></div>
+  
+  <!-- 购物车入口 -->
+  <div class="cart-entry">
+    <span class="cart-count">0</span>
+    <a href="/cart_view/" aria-label="查看购物车" style="color: white; text-decoration: none;">🛒</a>
+  </div>
+  
+  <!-- 主要内容区域 -->
+  <div class="main-content">
+    <h2>搜索结果</h2>
+    {% if medicine_data %}
+    <ul class="search-results">
+      {% for item in medicine_data %}
+      <li>
+        {% if item.image %}
+        <img src="{{ item.image }}" alt="{{ item.name }}">
+        {% endif %}
+        <div class="info">
+          <h3>{{ item.name }}</h3>
+          <p>{{ item.introduction }}</p>
+          <p class="price">价格: ¥{{ item.price }}</p>
+          <!-- 加入购物车按钮 -->
+          <button class="add-to-cart-button" data-medicine-id="{{ item.id }}">加入购物车</button>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p>没有找到匹配的药品。</p>
+    {% endif %}
+  </div>
+
+  <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script>
+    // 显示提示信息的函数
+    function showAlert(message, isSuccess) {
+      const alertBox = $('#alert-message');
+      alertBox.removeClass('alert-success alert-error');
+      alertBox.addClass(isSuccess ? 'alert-success' : 'alert-error');
+      alertBox.text(message);
+      alertBox.fadeIn();
+      
+      setTimeout(function() {
+        alertBox.fadeOut();
+      }, 3000);
+    }
+
+    // 显示顶部提示信息
+    function showTip(text) {
+      const $tip = $(`<div class="cart-tip">${text}</div>`);
+      $('body').append($tip);
+      $tip.fadeIn(200).delay(1200).fadeOut(400, () => $tip.remove());
+    }
+
+    // 获取CSRF Token
+    function getCSRFToken() {
+      return $('input[name=csrfmiddlewaretoken]').val();
+    }
+
+    // 添加商品到购物车
+    function addToCart(medicineId, quantity = 1) {
+      return fetch('/add_to_cart/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({
+          medicine_id: medicineId,
+          quantity: quantity
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          showTip('商品成功加入购物车！');
+          updateCartCount(data.item_count);
+          return true;
+        } else {
+          showTip('添加失败: ' + data.message);
+          return false;
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        showTip('添加失败');
+        return false;
+      });
+    }
+
+    // 更新购物车计数
+    function updateCartCount(count) {
+      $('.cart-count').text(count);
+    }
+
+    // 获取购物车商品数量
+    function getCartItemCount() {
+      fetch('/cart_info/', {
+        method: 'GET',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => {
+        if (response.headers.get('content-type') && 
+            response.headers.get('content-type').includes('application/json')) {
+          return response.json();
+        } else {
+          throw new Error('Response is not JSON');
+        }
+      })
+      .then(data => {
+        if (data.status === 'success') {
+          updateCartCount(data.item_count);
+        }
+      })
+      .catch(error => {
+        console.error('获取购物车数量失败:', error);
+      });
+    }
+
+    $(document).ready(function() {
+      // 页面加载完成后，检查购物车中的商品并更新按钮状态
+      checkCartItems();
+      
+      // 获取购物车商品数量
+      getCartItemCount();
+
+      // 为每个"加入购物车"按钮添加点击事件
+      $('.main-content').on('click', '.add-to-cart-button', function() {
+        const medicineId = $(this).data('medicine-id');
+        const button = $(this);
+        
+        // 发送AJAX请求将商品添加到购物车
+        addToCart(medicineId).then(success => {
+          if (success) {
+            // 更新按钮状态为"已在购物车"
+            button.removeClass('add-to-cart-button').addClass('in-cart-button').text('已在购物车').prop('disabled', true);
+          } else {
+            // 商品已在购物车中
+            button.removeClass('add-to-cart-button').addClass('in-cart-button').text('已在购物车').prop('disabled', true);
+          }
+        });
+      });
+    });
+
+    // 检查购物车中的商品并更新按钮状态
+    function checkCartItems() {
+      $.ajax({
+        url: '/cart_info/',
+        method: 'GET',
+        success: function(response) {
+          if (response.status === 'success') {
+            const cartItems = response.items || [];
+            cartItems.forEach(function(itemId) {
+              $(`.add-to-cart-button[data-medicine-id="${itemId}"]`)
+                .removeClass('add-to-cart-button')
+                .addClass('in-cart-button')
+                .text('已在购物车')
+                .prop('disabled', true);
+            });
+          }
+        },
+        error: function() {
+          // 如果无法获取购物车信息，则保持原样
+        }
+      });
+    }
+  </script>
+  {% csrf_token %}
+</body>
+
+</html>

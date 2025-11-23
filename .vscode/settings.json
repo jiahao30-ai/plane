@@ -1,0 +1,31 @@
+{
+    "python-envs.defaultEnvManager": "ms-python.python:conda",
+    "python-envs.defaultPackageManager": "ms-python.python:conda",
+    "python-envs.pythonProjects": [],
+    "liveServer.settings.port": 5501
+    ,
+    // Background extension settings (shalldie.background)
+    "background.enabled": true,
+    "background.useDefault": false,
+    // include absolute path as well as workspace-variable path to improve resolution on Windows
+    "background.customImages": [
+        "E:/PycharmProjects/plane_in_medical/plane_in_medical/media/avatar/123.jpg",
+        "${workspaceFolder}/plane_in_medical/media/avatar/123.jpg"
+    ],
+    "background.style": {
+        "opacity": 0.25,
+        "background-size": "cover",
+        "background-position": "center",
+        "background-repeat": "no-repeat"
+    }
+
+    // New-style setting for the Background extension (editor background)
+    ,"background.editor": {
+        "enabled": true,
+        "image": "file:///E:/PycharmProjects/plane_in_medical/plane_in_medical/media/avatar/123.jpg",
+        "opacity": 0.25,
+        "background-size": "cover",
+        "background-position": "center",
+        "background-repeat": "no-repeat"
+    }
+}

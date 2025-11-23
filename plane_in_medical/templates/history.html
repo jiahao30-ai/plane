@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>消费记录</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+            background: #f5f6fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            color: #2c3e50;
+        }
+        
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .summary-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        
+        .summary-card.total { border-top: 4px solid #3498db; }
+        .summary-card.month { border-top: 4px solid #2ecc71; }
+        .summary-card.count { border-top: 4px solid #e74c3c; }
+        
+        .summary-label {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+        
+        .summary-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .filters {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: none;
+        }
+        
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .filter-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #34495e;
+        }
+        
+        .filter-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .filter-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .apply-btn {
+            background: #3498db;
+            color: white;
+        }
+        
+        .apply-btn:hover {
+            background: #2980b9;
+        }
+        
+        .reset-btn {
+            background: #ecf0f1;
+            color: #34495e;
+        }
+        
+        .reset-btn:hover {
+            background: #bdc3c7;
+        }
+        
+        .history-list {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        
+        .list-header {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            font-weight: bold;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .history-item {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            transition: background 0.3s;
+        }
+        
+        .history-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .item-name {
+            font-weight: 500;
+        }
+        
+        .item-category {
+            color: #7f8c8d;
+        }
+        
+        .item-price {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        .item-date {
+            color: #7f8c8d;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            gap: 10px;
+        }
+        
+        .pagination a, .pagination span {
+            display: inline-block;
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-decoration: none;
+            color: #34495e;
+        }
+        
+        .pagination a:hover {
+            background: #f8f9fa;
+        }
+        
+        .pagination .current {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        
+        .pagination .disabled {
+            color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #7f8c8d;
+        }
+        
+        .empty-state img {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .filter-toggle {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+        
+        .filter-toggle:hover {
+            background: #2980b9;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+        }
+        
+        @media (max-width: 768px) {
+            .list-header, .history-item {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            
+            .item-category, .item-date {
+                display: none;
+            }
+            
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include "ceil.html" %}
+    
+    <div class="container">
+        <div class="header">
+            <h1>消费记录</h1>
+            <button class="filter-toggle" onclick="toggleFilter()">筛选</button>
+        </div>
+        
+        <div class="summary-cards">
+            <div class="summary-card total">
+                <div class="summary-label">总消费</div>
+                <div class="summary-value">¥{{ total_price|floatformat:2 }}</div>
+            </div>
+            <div class="summary-card month">
+                <div class="summary-label">本月消费</div>
+                <div class="summary-value">¥{{ this_month_price|floatformat:2 }}</div>
+            </div>
+            <div class="summary-card count">
+                <div class="summary-label">购买次数</div>
+                <div class="summary-value">{{ buy_count }}</div>
+            </div>
+            <div class="summary-card month">
+                <div class="summary-label">本月次数</div>
+                <div class="summary-value">{{ this_month_buy_count }}</div>
+            </div>
+            <div class="summary-card month">
+                <div class="summary-label">最多方式</div>
+                <div class="summary-value">{{ most_buy_kind }}</div>
+                <div class="summary-label">支付</div>
+            </div>
+        </div>
+        
+        <div class="filters" id="filterSection">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="paymethod">支付方式</label>
+                    <select id="paymethod">
+                        <option value="all_pay" {% if not paymethod_filter or paymethod_filter == 'all_pay' %}selected{% endif %}>全部方式</option>
+                        <option value="支付宝" {% if paymethod_filter == '支付宝' %}selected{% endif %}>支付宝</option>
+                        <option value="微信支付" {% if paymethod_filter == '微信支付' %}selected{% endif %}>微信支付</option>
+                        <option value="银行卡支付" {% if paymethod_filter == '银行卡支付' %}selected{% endif %}>银行卡支付</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="time_range">时间范围</label>
+                    <select id="time_range">
+                        <option value="all" {% if not time_range_filter or time_range_filter == 'all' %}selected{% endif %}>全部时间</option>
+                        <option value="month" {% if time_range_filter == 'month' %}selected{% endif %}>本月</option>
+                        <option value="quarter" {% if time_range_filter == 'quarter' %}selected{% endif %}>最近三个月</option>
+                        <option value="year" {% if time_range_filter == 'year' %}selected{% endif %}>最近一年</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="sort_by">排序方式</label>
+                    <select id="sort_by">
+                        <option value="date-desc" {% if not sort_by_filter or sort_by_filter == 'date-desc' %}selected{% endif %}>按时间倒序</option>
+                        <option value="date-asc" {% if sort_by_filter == 'date-asc' %}selected{% endif %}>按时间正序</option>
+                        <option value="price-desc" {% if sort_by_filter == 'price-desc' %}selected{% endif %}>按金额倒序</option>
+                        <option value="price-asc" {% if sort_by_filter == 'price-asc' %}selected{% endif %}>按金额正序</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="filter-buttons">
+                <button class="filter-btn apply-btn" id="apply-filter">应用筛选</button>
+                <button class="filter-btn reset-btn" id="reset-filter">重置筛选</button>
+            </div>
+        </div>
+        
+        <div class="history-list" id="historyList">
+            <div class="list-header">
+                <div>商品名称</div>
+                <div>备注</div>
+                <div>金额</div>
+                <div>购买时间</div>
+            </div>
+            
+            <div id="historyBody">
+                {% if history_data %}
+                    {% for item in history_data %}
+                    <div class="history-item">
+                        <div class="item-name">{{ item.name }}</div>
+                        <div class="item-category">{{ item.notes }}</div>
+                        <div class="item-price">¥{{ item.price|floatformat:2 }}</div>
+                        <div class="item-date">{{ item.order_time|date:"Y-m-d" }}</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c0c4cc'%3E%3Cpath d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z'/%3E%3C/svg%3E" alt="无记录">
+                        <div>暂无消费记录</div>
+                    </div>
+                {% endif %}
+            </div>
+            
+                  {% if history_page.has_other_pages %}
+              <div class="pagination" id="pagination">
+                  {% if history_page.has_previous %}
+                      <!-- 首页 -->
+                      <a href="?page=1{% if paymethod_filter != 'all_pay' %}&paymethod={{ paymethod_filter }}{% endif %}{% if time_range_filter != 'all' %}&time_range={{ time_range_filter }}{% endif %}{% if sort_by_filter != 'date-desc' %}&sort_by={{ sort_by_filter }}{% endif %}">首页</a>
+                      
+                      <!-- 上一页 -->
+                      <a href="?page={{ history_page.previous_page_number }}{% if paymethod_filter != 'all_pay' %}&paymethod={{ paymethod_filter }}{% endif %}{% if time_range_filter != 'all' %}&time_range={{ time_range_filter }}{% endif %}{% if sort_by_filter != 'date-desc' %}&sort_by={{ sort_by_filter }}{% endif %}">上一页</a>
+                  {% else %}
+                      <span class="disabled">首页</span>
+                      <span class="disabled">上一页</span>
+                  {% endif %}
+                  
+                  <span class="current">
+                      第 {{ history_page.number }} 页 / 共 {{ history_page.paginator.num_pages }} 页
+                  </span>
+                  
+                  {% if history_page.has_next %}
+                      <!-- 下一页 -->
+                      <a href="?page={{ history_page.next_page_number }}{% if paymethod_filter != 'all_pay' %}&paymethod={{ paymethod_filter }}{% endif %}{% if time_range_filter != 'all' %}&time_range={{ time_range_filter }}{% endif %}{% if sort_by_filter != 'date-desc' %}&sort_by={{ sort_by_filter }}{% endif %}">下一页</a>
+                      
+                      <!-- 尾页 -->
+                      <a href="?page={{ history_page.paginator.num_pages }}{% if paymethod_filter != 'all_pay' %}&paymethod={{ paymethod_filter }}{% endif %}{% if time_range_filter != 'all' %}&time_range={{ time_range_filter }}{% endif %}{% if sort_by_filter != 'date-desc' %}&sort_by={{ sort_by_filter }}{% endif %}">尾页</a>
+                  {% else %}
+                      <span class="disabled">下一页</span>
+                      <span class="disabled">尾页</span>
+                  {% endif %}
+              </div>
+              {% endif %}
+        </div>
+    </div>
+    
+    <script>
+        // 全局变量存储当前筛选状态
+        let currentFilters = {
+            paymethod: '{{ paymethod_filter|default:"all_pay" }}',
+            time_range: '{{ time_range_filter|default:"all" }}',
+            sort_by: '{{ sort_by_filter|default:"date-desc" }}'
+        };
+        
+        // 页面加载时设置筛选表单的值
+        document.addEventListener('DOMContentLoaded', function() {
+            // 从模板变量中获取当前筛选条件
+            const paymethod = '{{ paymethod_filter }}';
+            const timeRange = '{{ time_range_filter }}';
+            const sortBy = '{{ sort_by_filter }}';
+            
+            // 设置支付方式
+            if (paymethod) {
+                document.getElementById('paymethod').value = paymethod;
+                currentFilters.paymethod = paymethod;
+            }
+            
+            // 设置时间范围
+            if (timeRange) {
+                document.getElementById('time_range').value = timeRange;
+                currentFilters.time_range = timeRange;
+            }
+            
+            // 设置排序方式
+            if (sortBy) {
+                document.getElementById('sort_by').value = sortBy;
+                currentFilters.sort_by = sortBy;
+            }
+            
+            // 如果有筛选条件，显示筛选区域
+            if (paymethod && paymethod !== 'all_pay' || timeRange && timeRange !== 'all' || sortBy && sortBy !== 'date-desc') {
+                document.getElementById('filterSection').style.display = 'block';
+            }
+            
+            // 绑定应用筛选按钮事件
+            document.getElementById('apply-filter').addEventListener('click', function() {
+                applyFilter();
+            });
+            
+            // 绑定重置筛选按钮事件
+            document.getElementById('reset-filter').addEventListener('click', function() {
+                resetFilter();
+            });
+            
+            // 绑定筛选条件下拉框的change事件，实现自动应用筛选
+            document.getElementById('paymethod').addEventListener('change', function() {
+                currentFilters.paymethod = this.value;
+                applyFilter();
+            });
+            
+            document.getElementById('time_range').addEventListener('change', function() {
+                currentFilters.time_range = this.value;
+                applyFilter();
+            });
+            
+            document.getElementById('sort_by').addEventListener('change', function() {
+                currentFilters.sort_by = this.value;
+                applyFilter();
+            });
+        });
+        
+        // 打开筛选器
+        function toggleFilter() {
+            const filterSection = document.getElementById('filterSection');
+            filterSection.style.display = filterSection.style.display === 'block' ? 'none' : 'block';
+        }
+        
+        // 应用筛选函数
+        function applyFilter() {
+            // 获取当前页码，默认为1
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentPage = urlParams.get('page') || 1;
+            
+            // 构建URL
+            let url = window.location.pathname;
+            
+            // 添加页码参数
+            if (currentPage != 1) {
+                url += '?page=' + currentPage;
+            }
+            
+            // 添加筛选参数
+            const params = [];
+            if (currentFilters.paymethod && currentFilters.paymethod !== 'all_pay') {
+                params.push('paymethod=' + encodeURIComponent(currentFilters.paymethod));
+            }
+            if (currentFilters.time_range && currentFilters.time_range !== 'all') {
+                params.push('time_range=' + encodeURIComponent(currentFilters.time_range));
+            }
+            if (currentFilters.sort_by && currentFilters.sort_by !== 'date-desc') {
+                params.push('sort_by=' + encodeURIComponent(currentFilters.sort_by));
+            }
+            
+            if (params.length > 0) {
+                url += (url.includes('?') ? '&' : '?') + params.join('&');
+            }
+            
+            // 跳转到新URL
+            window.location.href = url;
+        }
+        
+        // 重置筛选函数
+        function resetFilter() {
+            // 重置筛选条件
+            document.getElementById('paymethod').value = 'all_pay';
+            document.getElementById('time_range').value = 'all';
+            document.getElementById('sort_by').value = 'date-desc';
+            
+            // 重置全局变量
+            currentFilters = {
+                paymethod: 'all_pay',
+                time_range: 'all',
+                sort_by: 'date-desc'
+            };
+            
+            // 保留页码，只清除筛选参数
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentPage = urlParams.get('page') || 1;
+            let newUrl = window.location.pathname;
+            
+            if (currentPage != 1) {
+                newUrl += '?page=' + currentPage;
+            }
+            
+            window.location.href = newUrl;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-11-10 14:18+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+#: .\login_app\models.py:7
+msgid "用户名"
+msgstr "username"
+
+#: .\login_app\models.py:9
+msgid "密码"
+msgstr "password"
+
+#: .\login_app\models.py:11
+msgid "性别"
+msgstr "sex"
+
+#: .\templates\ceil.html:85
+msgid "首页"
+msgstr "Home"
+
+#: .\templates\ceil.html:97
+msgid "在线提问"
+msgstr "Online Q&A"
+
+#: .\templates\ceil.html:109
+msgid "物资下单"
+msgstr "Order Supplies"
+
+#: .\templates\ceil.html:121
+msgid "订单查询"
+msgstr "Order Inquiry"
+
+#: .\templates\ceil.html:133
+msgid "我的"
+msgstr "My Account"
+
+
+#: .\templates\ceil.html:145
+msgid "搜索物资"
+msgstr "Search Supplies"

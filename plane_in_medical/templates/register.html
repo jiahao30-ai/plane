@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>医飞速达 - 注册</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #005baa;
+      --primary-light: #007bff;
+      --danger: #e60012;
+      --success: #28a745;
+      --gray: #f8f9fa;
+      --dark: #343a40;
+      --light: #f5f7fa;
+      --border: #dee2e6;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      --radius: 12px;
+      --transition: all 0.3s ease;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    }
+    
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #005baa 0%, #00a3cc 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .register-container {
+      width: 100%;
+      max-width: 900px;
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+    }
+    
+    .left-panel {
+      flex: 1;
+      background: linear-gradient(rgba(0, 91, 170, 0.9), rgba(0, 91, 170, 0.9)), url('/static/images/image.png') center/cover;
+      color: white;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+    }
+    
+    .right-panel {
+      flex: 1;
+      padding: 40px;
+    }
+    
+    .logo-area {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .logo {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 15px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .logo-text {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 5px;
+    }
+    
+    .logo-subtext {
+      font-size: 14px;
+      opacity: 0.9;
+      font-weight: 300;
+    }
+    
+    .welcome-text h1 {
+      font-size: 28px;
+      margin-bottom: 15px;
+      font-weight: 700;
+    }
+    
+    .welcome-text p {
+      font-size: 16px;
+      line-height: 1.6;
+      opacity: 0.9;
+      margin-bottom: 20px;
+    }
+    
+    .features {
+      margin-top: 30px;
+    }
+    
+    .feature {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .feature i {
+      font-size: 20px;
+      margin-right: 12px;
+      color: #4dabf7;
+    }
+    
+    .feature span {
+      font-size: 15px;
+    }
+    
+    .form-title {
+      margin-bottom: 25px;
+    }
+    
+    .form-title h2 {
+      font-size: 24px;
+      color: var(--dark);
+      margin-bottom: 5px;
+    }
+    
+    .form-title p {
+      color: #6c757d;
+      font-size: 14px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--dark);
+      font-size: 14px;
+    }
+    
+    .form-group label .required {
+      color: var(--danger);
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 15px;
+      transition: var(--transition);
+    }
+    
+    .form-control:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+      outline: none;
+    }
+    
+    .input-group {
+      position: relative;
+    }
+    
+    .input-group i {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #6c757d;
+    }
+    
+    .input-group .form-control {
+      padding-left: 40px;
+    }
+    
+    /* 头像上传样式 */
+    .avatar-upload {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .avatar-preview {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 2px dashed #ced4da;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 15px;
+      background-color: var(--gray);
+      position: relative;
+      transition: var(--transition);
+    }
+    
+    .avatar-preview:hover {
+      border-color: var(--primary);
+      background-color: #e9ecef;
+    }
+    
+    .avatar-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+    
+    .avatar-preview .placeholder {
+      color: #6c757d;
+      font-size: 14px;
+      text-align: center;
+    }
+    
+    .avatar-preview .placeholder i {
+      display: block;
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+    
+    .avatar-upload input[type="file"] {
+      display: none;
+    }
+    
+    .avatar-upload label {
+      cursor: pointer;
+      color: var(--primary);
+      font-weight: 500;
+      font-size: 14px;
+      text-align: center;
+    }
+    
+    .avatar-upload label:hover {
+      text-decoration: underline;
+    }
+    
+    /* 性别选择框样式 */
+    .gender-group {
+      display: flex;
+      gap: 15px;
+    }
+    
+    .gender-option {
+      flex: 1;
+      text-align: center;
+    }
+    
+    .gender-option input[type="radio"] {
+      display: none;
+    }
+    
+    .gender-option label {
+      display: block;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-bottom: 0;
+      font-weight: 500;
+    }
+    
+    .gender-option input[type="radio"]:checked + label {
+      background-color: rgba(0, 123, 255, 0.1);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    
+    .gender-option label:hover {
+      background-color: #f8f9fa;
+    }
+    
+    /* 验证码容器 */
+    .captcha-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .captcha-input {
+      flex: 1;
+    }
+    
+    .captcha-image {
+      height: 40px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      transition: var(--transition);
+    }
+    
+    .captcha-image:hover {
+      opacity: 0.8;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .captcha-refresh {
+      background: none;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 5px;
+    }
+    
+    .btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-top: 10px;
+    }
+    
+    .btn:hover {
+      background: var(--primary-light);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 91, 170, 0.2);
+    }
+    
+    .login-link {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+    
+    .login-link a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    
+    .login-link a:hover {
+      text-decoration: underline;
+    }
+    
+    /* 错误信息样式 */
+    .error-message {
+      color: var(--danger);
+      font-size: 13px;
+      margin-top: 6px;
+      display: none;
+    }
+    
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-top: 30px;
+    }
+    
+    @media (max-width: 768px) {
+      .register-container {
+        flex-direction: column;
+      }
+      
+      .left-panel {
+        padding: 30px 20px;
+      }
+      
+      .right-panel {
+        padding: 30px 20px;
+      }
+      
+      .logo-area {
+        margin-bottom: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="register-container">
+    <div class="left-panel">
+      <div class="logo-area">
+        <div class="logo">
+          <img src="/static/images/logo.jpg" alt="医飞速达Logo">
+        </div>
+        <div class="logo-text">医飞速达</div>
+        <div class="logo-subtext">Medical Drone Delivery</div>
+      </div>
+      
+      <div class="welcome-text">
+        <h1>欢迎加入我们</h1>
+        <p>医飞速达为您提供快速、安全、可靠的医疗用品配送服务，让健康触手可及。</p>
+      </div>
+      
+      <div class="features">
+        <div class="feature">
+          <i class="fas fa-shipping-fast"></i>
+          <span>无人机快速配送，30分钟内送达</span>
+        </div>
+        <div class="feature">
+          <i class="fas fa-shield-alt"></i>
+          <span>全程温控，确保药品安全</span>
+        </div>
+        <div class="feature">
+          <i class="fas fa-user-md"></i>
+          <span>专业医疗团队支持</span>
+        </div>
+      </div>
+      
+      <div class="footer">
+        © 2025 医飞速达 - 智能医疗配送平台
+      </div>
+    </div>
+    
+    <div class="right-panel">
+      <div class="form-title">
+        <h2>创建账户</h2>
+        <p>请填写以下信息完成注册</p>
+      </div>
+
+      <form id="registerForm" action="/register/" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="avatar-upload">
+          <div class="avatar-preview">
+            <img id="avatar-preview-img" src="" alt="头像预览">
+            <div class="placeholder" id="avatar-placeholder">
+              <i class="fas fa-camera"></i>
+              上传头像
+            </div>
+          </div>
+          <input type="file" id="avatar" name="avatar" accept="image/*">
+          <label for="avatar"><i class="fas fa-upload"></i> 选择头像文件</label>
+        </div>
+        
+        <div class="form-group">
+          <label for="username">用户名 <span class="required">*</span></label>
+          <div class="input-group">
+            <i class="fas fa-user"></i>
+            <input type="text" id="username" name="username" class="form-control" placeholder="请输入用户名" required maxlength="5">
+          </div>
+          <div class="error-message" id="username-error">用户名长度必须在1到5个字符之间</div>
+        </div>
+        
+        <div class="form-group">
+          <label for="password">密码 <span class="required">*</span></label>
+          <div class="input-group">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="password" name="password" class="form-control" placeholder="请输入密码" required minlength="6" maxlength="16">
+          </div>
+          <div class="error-message" id="password-error">密码长度必须在6到16个字符之间</div>
+        </div>
+        
+        <div class="form-group">
+          <label for="email">邮箱 <span class="required">*</span></label>
+          <div class="input-group">
+            <i class="fas fa-envelope"></i>
+            <input type="email" id="email" name="email" class="form-control" placeholder="请输入邮箱" required>
+          </div>
+          <div class="error-message" id="email-error">请输入有效的邮箱地址</div>
+        </div>
+        
+        <div class="form-group">
+          <label>性别 <span class="required">*</span></label>
+          <div class="gender-group">
+            <div class="gender-option">
+              <input type="radio" id="male" name="sex" value="m" required>
+              <label for="male"><i class="fas fa-mars"></i> 男</label>
+            </div>
+            <div class="gender-option">
+              <input type="radio" id="female" name="sex" value="f" required>
+              <label for="female"><i class="fas fa-venus"></i> 女</label>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="captcha">验证码 <span class="required">*</span></label>
+          <div class="captcha-container">
+            <div class="input-group captcha-input">
+              <i class="fas fa-key"></i>
+              <input type="text" id="captcha" name="captcha" class="form-control" placeholder="请输入验证码" required>
+            </div>
+            <img src="{% url 'captcha' %}" alt="验证码" class="captcha-image" id="captcha-image">
+            <button type="button" class="captcha-refresh" onclick="refreshCaptcha()">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+          </div>
+        </div>
+        
+        <button class="btn" type="submit">注册账户</button>
+      </form>
+
+      <div class="login-link">
+        <a href="/login/">已有账号？立即登录</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 头像预览功能
+    document.getElementById("avatar").addEventListener("change", function(e) {
+      const file = e.target.files[0];
+      const preview = document.getElementById("avatar-preview-img");
+      const placeholder = document.getElementById("avatar-placeholder");
+      
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          preview.src = e.target.result;
+          preview.style.display = "block";
+          placeholder.style.display = "none";
+        };
+        reader.readAsDataURL(file);
+      } else {
+        preview.src = "";
+        preview.style.display = "none";
+        placeholder.style.display = "block";
+      }
+    });
+    
+    // 刷新验证码
+    function refreshCaptcha() {
+      document.getElementById("captcha-image").src = "/captcha/?" + Math.random();
+    }
+    
+  </script>
+</body>
+</html>

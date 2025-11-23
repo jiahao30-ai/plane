@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>医飞速达 - 西安市智能路径规划</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .map-container {
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 80px);
+            margin-top: 80px;
+        }
+
+        #container {
+            width: 100%;
+            height: 100%;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        /* 控制面板样式 */
+        .control-panel {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            width: 320px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .control-panel h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-panel h3::before {
+            content: "🗺️";
+            font-size: 20px;
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #17a2b8;
+            box-shadow: 0 0 0 3px rgba(23, 162, 184, 0.1);
+            background: white;
+        }
+
+        .search-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .search-btn:hover {
+            background: linear-gradient(135deg, #138496, #117a8b);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(23, 162, 184, 0.4);
+        }
+
+        .search-btn:active {
+            transform: translateY(0);
+        }
+
+        .location-section {
+            margin-top: 20px;
+        }
+
+        .location-section h4 {
+            color: #495057;
+            font-size: 14px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .location-section h4::before {
+            content: "📍";
+            font-size: 16px;
+        }
+
+        .location-btn {
+            display: block;
+            margin: 8px 0;
+            padding: 12px 15px;
+            background: rgba(248, 249, 250, 0.8);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-align: left;
+            font-size: 14px;
+            color: #495057;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .location-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .location-btn:hover {
+            background: rgba(23, 162, 184, 0.1);
+            border-color: #17a2b8;
+            transform: translateX(5px);
+            color: #17a2b8;
+        }
+
+        .location-btn:hover::before {
+            left: 100%;
+        }
+
+        .location-btn.active {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+            border-color: #17a2b8;
+            box-shadow: 0 4px 15px rgba(23, 162, 184, 0.3);
+        }
+
+        .separator {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #e1e8ed, transparent);
+            margin: 20px 0;
+            border-radius: 1px;
+        }
+
+        .map-info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .map-info h4 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .map-info p {
+            color: #6c757d;
+            font-size: 12px;
+            margin: 2px 0;
+        }
+
+        /* 医院选择理由样式 */
+        .selection-reasons {
+            position: absolute;
+            top: 90px; /* 在导航栏下方 (导航栏高度70px + 20px间距) */
+            left: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            width: 320px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+        }
+
+        .selection-reasons h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .selection-reasons h3::before {
+            content: "💡";
+            font-size: 20px;
+        }
+
+        .selection-reasons ul {
+            padding-left: 20px;
+            margin: 15px 0;
+        }
+
+        .selection-reasons li {
+            margin-bottom: 10px;
+            color: #495057;
+            font-size: 14px;
+        }
+
+        .selection-details {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .selection-details p {
+            margin: 5px 0;
+            font-weight: 600;
+            color: #495057;
+            font-size: 13px;
+        }
+
+        /* 医院图例 */
+        .hospital-legend {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .hospital-legend h5 {
+            margin: 0 0 10px 0;
+            color: #495057;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+            font-size: 12px;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            margin-right: 8px;
+            border: 2px solid white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 飞行模拟控制 */
+        .flight-control {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .flight-control h4 {
+            margin: 0 0 10px 0;
+            color: #495057;
+            font-size: 14px;
+        }
+
+        .flight-btn {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .flight-btn:hover {
+            background: linear-gradient(135deg, #218838, #1ba87e);
+            transform: translateY(-2px);
+        }
+
+        .flight-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .control-panel {
+                width: 280px;
+                right: 15px;
+                top: 15px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .map-container {
+                height: calc(100vh - 60px);
+                margin-top: 60px;
+            }
+
+            .control-panel {
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                width: auto;
+                padding: 20px;
+                border-radius: 10px;
+            }
+
+            .map-info {
+                bottom: 10px;
+                left: 10px;
+                right: 10px;
+                padding: 12px 15px;
+            }
+
+            #container {
+                border-radius: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .control-panel {
+                padding: 15px;
+            }
+
+            .control-panel h3 {
+                font-size: 16px;
+            }
+
+            .search-input, .search-btn, .location-btn {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2000;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #17a2b8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 滚动条样式 */
+        .control-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .control-panel::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 3px;
+        }
+
+        .control-panel::-webkit-scrollbar-thumb {
+            background: #17a2b8;
+            border-radius: 3px;
+        }
+
+        .control-panel::-webkit-scrollbar-thumb:hover {
+            background: #138496;
+        }
+
+        /* 服务范围限制弹窗样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transform: scale(0.8);
+            opacity: 0;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .modal-overlay.show .modal-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .modal-icon {
+            font-size: 60px;
+            color: #ffc107;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .modal-message {
+            font-size: 16px;
+            color: #6c757d;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .modal-location {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #ffc107;
+        }
+        .content-wrapper { 
+            margin-top: 70px;
+        }
+        .modal-location strong {
+            color: #495057;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        .modal-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        .modal-btn-primary {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+        }
+
+        .modal-btn-primary:hover {
+            background: linear-gradient(135deg, #138496, #117a8b);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(23, 162, 184, 0.4);
+        }
+
+        .modal-btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .modal-btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .service-features {
+            background: #e8f4f8;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .service-features h4 {
+            color: #17a2b8;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .service-features ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .service-features li {
+            padding: 5px 0;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .service-features li::before {
+            content: "✓";
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        /* 医院控制按钮样式 */
+        .hospital-control {
+            margin: 15px 0;
+        }
+
+        .hospital-toggle-btn {
+            width: 100%;
+            padding: 12px 15px;
+            background: linear-gradient(135deg, #FF4757, #FF6B35);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .hospital-toggle-btn:hover {
+            background: linear-gradient(135deg, #FF3742, #FF5722);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.4);
+        }
+
+        .hospital-toggle-btn.active {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+        }
+
+        .hospital-toggle-btn.active:hover {
+            background: linear-gradient(135deg, #00a085, #00b7b3);
+        }
+
+        /* 通知样式 */
+        .notification {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10000;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+            min-width: 300px;
+            text-align: center;
+        }
+
+        .notification.info {
+            background: linear-gradient(135deg, #17a2b8, #6f42c1);
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #dc3545, #e83e8c);
+        }
+    </style>
+    <script type="text/javascript" src="https://api.map.baidu.com/api?v=2.0&ak=e5QIM8cxaWeB2idV44dTEW3lVw3xGKgK"></script>
+</head>
+
+<body>
+    {% include "ceil.html" %}
+
+    <div class="map-container">
+        <div id="container"></div>
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <script>               
+        // 全局变量
+        var map;
+        var startMarker;
+        var endMarker;
+        var loading = document.getElementById('loading');
+        var routePolyline = null; // 路径线
+        var flightMarker = null; // 飞行器标记
+        var animationInterval = null;
+        var currentPointIndex = 0;
+        var totalPoints = 0;
+        var pointsArray = [];
+        var currentFlightPosition = null; // 保存当前飞行器位置
+        var isAnimationRunning = false;   // 标记动画是否正在运行
+        // 起始点将从后端传递的最近医院获取
+        var startPoint;
+        var hospitalMarkers = []; // 存储医院标记
+
+        // 初始化地图
+        function initMap() {
+            // 显示加载动画
+            showLoading();
+
+            // 创建地图实例
+            map = new BMap.Map("container");
+
+            // 地图初始化，设置到西安市中心
+            map.centerAndZoom(new BMap.Point(108.948, 34.263), 12);
+
+            // 启用功能
+            map.enableScrollWheelZoom(true);
+
+            // 添加地图控件
+            map.addControl(new BMap.NavigationControl({
+                anchor: BMAP_ANCHOR_TOP_LEFT,
+                type: BMAP_NAVIGATION_CONTROL_LARGE
+            }));
+
+            map.addControl(new BMap.ScaleControl({
+                anchor: BMAP_ANCHOR_BOTTOM_LEFT
+            }));
+
+            // 设置起始点为最近的医院
+            setStartPoint();
+
+            // 添加起点标记
+            addStartMarker();
+
+            // 添加医院节点
+            addHospitalMarkers();
+
+            // 隐藏加载动画
+            hideLoading();
+
+            // 处理URL参数
+            processUrlParameters();
+
+            // 显示医院选择理由
+            showSelectionReasons();
+        }
+
+        // 设置起始点为最近的医院
+        function setStartPoint() {
+            // 从后端获取最近的医院信息
+            var nearestHospital = null;
+            try {
+                // 尝试解析最近医院数据
+                var nearestHospitalData = '{{ nearest_hospital|escapejs }}';
+                console.log("最近医院数据:", nearestHospitalData);
+                if (nearestHospitalData && nearestHospitalData !== 'null' && nearestHospitalData !== '') {
+                    nearestHospital = JSON.parse(nearestHospitalData);
+                }
+            } catch (e) {
+                console.log("无法解析最近医院数据:", e);
+            }
+            
+            if (nearestHospital && nearestHospital.longitude && nearestHospital.latitude) {
+                // 使用最近的医院作为起始点
+                startPoint = new BMap.Point(nearestHospital.longitude, nearestHospital.latitude);
+            } else {
+                // 如果没有最近的医院信息，则默认使用西安交通大学第一附属医院
+                startPoint = new BMap.Point(108.945009, 34.220307);
+            }
+        }
+
+        // 添加起点标记
+        function addStartMarker() {
+            // 创建起点标记图标
+            var startIcon = new BMap.Icon("data:image/svg+xml;base64," + btoa(`
+                <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" fill="#28a745" stroke="white" stroke-width="2"/>
+                    <circle cx="12" cy="12" r="6" fill="white"/>
+                    <circle cx="12" cy="12" r="3" fill="#28a745"/>
+                </svg>
+            `), {
+                anchor: new BMap.Size(12, 12),
+                imageSize: new BMap.Size(24, 24)
+            });
+
+            // 创建起点标记
+            startMarker = new BMap.Marker(startPoint, { icon: startIcon });
+            map.addOverlay(startMarker);
+
+            // 添加信息窗口
+            var nearestHospital = null;
+            try {
+                var nearestHospitalData = '{{ nearest_hospital|escapejs }}';
+                if (nearestHospitalData && nearestHospitalData !== 'null' && nearestHospitalData !== '') {
+                    nearestHospital = JSON.parse(nearestHospitalData);
+                }
+            } catch (e) {
+                console.log("无法解析最近医院数据:", e);
+            }
+            
+            var hospitalName = nearestHospital ? nearestHospital.name : "西安交通大学第一附属医院";
+            var infoWindow = new BMap.InfoWindow("起飞点：" + hospitalName, {
+                width: 200,
+                height: 80
+            });
+
+            startMarker.addEventListener("click", function () {
+                map.openInfoWindow(infoWindow, startPoint);
+            });
+        }
+
+        // 添加医院节点标记
+        function addHospitalMarkers() {
+            // 医院数据从后端传递
+            var hospitals = [];
+            try {
+                // 尝试解析医院数据，如果模板变量未正确渲染则使用空数组
+                var hospitalsData = '{{ hospitals|escapejs }}';
+                if (hospitalsData) {
+                    hospitals = JSON.parse(hospitalsData);
+                }
+            } catch (e) {
+                console.log("医院数据未正确传递或为空:", e);
+                return;
+            }
+            
+            // 如果没有医院数据则直接返回
+            if (!hospitals || hospitals.length === 0) {
+                console.log("没有医院数据需要显示");
+                return;
+            }
+            
+            // 创建医院标记图标（与起点标记相同大小和形状，但使用不同颜色）
+            var hospitalIcon = new BMap.Icon("data:image/svg+xml;base64," + btoa(`
+                <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" fill="#17a2b8" stroke="white" stroke-width="2"/>
+                    <circle cx="12" cy="12" r="6" fill="white"/>
+                    <circle cx="12" cy="12" r="3" fill="#17a2b8"/>
+                </svg>
+            `), {
+                anchor: new BMap.Size(12, 12),
+                imageSize: new BMap.Size(24, 24)
+            });
+
+            // 遍历医院数据并添加标记
+            hospitals.forEach(function(hospital) {
+                var point = new BMap.Point(hospital.longitude, hospital.latitude);
+                var marker = new BMap.Marker(point, { icon: hospitalIcon });
+                
+                // 添加信息窗口
+                var infoWindow = new BMap.InfoWindow("医院名称：" + hospital.name, {
+                    width: 200,
+                    height: 60
+                });
+                
+                marker.addEventListener("click", function() {
+                    map.openInfoWindow(infoWindow, point);
+                });
+                
+                map.addOverlay(marker);
+                hospitalMarkers.push(marker);
+            });
+        }
+        
+        // 处理URL参数
+        function processUrlParameters() {
+            // 获取URL参数
+            const urlParams = new URLSearchParams(window.location.search);
+            const address = "{{ address|escapejs }}";
+            const orderId = urlParams.get('order_id');
+            console.log('原始地址参数：', address);
+            if (address) {
+                // 解码地址
+                const decodedAddress = decodeURIComponent(address);
+
+                // 显示加载动画
+                showLoading();
+
+                // 创建地址解析器实例
+                var myGeo = new BMap.Geocoder();
+                console.log('收到地址参数:', decodedAddress);
+
+                // 将地址解析为坐标点
+                myGeo.getPoint(decodedAddress, function (point) {
+                    console.log('解析结果:', point);
+                    hideLoading();
+
+                    if (point) {
+                        // 检查是否在西安市范围内（大致范围）
+                        var isInXian = point.lng >= 108.7 && point.lng <= 109.2 &&
+                            point.lat >= 34.0 && point.lat <= 34.5;
+
+                        if (!isInXian) {
+                            // 显示服务范围限制的弹窗
+                            showServiceLimitModal(decodedAddress);
+                            return;
+                        }
+
+                        // 移动地图到新位置
+                        map.panTo(point);
+                        map.setZoom(15); // 设置更高的缩放级别以便更清楚地看到标记
+
+                        // 添加终点标记
+                        addEndMarker(point, decodedAddress, orderId);
+
+                        // 绘制路径
+                        drawRoute(startPoint, point);
+                        
+                        // 检查是否有保存的位置，如果没有则启动飞行动画
+                        var savedPosition = getSavedFlightPosition();
+                        if (!savedPosition) {
+                            startFlightAnimation(); // 启动飞行动画
+                        } else {
+                            // 如果有保存的位置，直接恢复动画
+                            resumeFlightAnimation();
+                        }
+
+                        showNotification('已定位到地址: ' + decodedAddress, 'success');
+                    } else {
+                        showNotification('地址解析失败: ' + decodedAddress, 'error');
+                    }
+                }, "西安市");
+            }
+        }
+
+        // 添加终点标记
+        function addEndMarker(point, address, orderId) {
+            // 创建终点标记图标（红色，更醒目）
+            var endIcon = new BMap.Icon("data:image/svg+xml;base64," + btoa(`
+                <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="16" cy="16" r="14" fill="#FF4757" stroke="white" stroke-width="2"/>
+                    <circle cx="16" cy="16" r="8" fill="white"/>
+                    <circle cx="16" cy="16" r="4" fill="#FF4757"/>
+                </svg>
+            `), {
+                anchor: new BMap.Size(16, 16),
+                imageSize: new BMap.Size(32, 32)
+            });
+
+            // 创建终点标记
+            endMarker = new BMap.Marker(point, { icon: endIcon });
+            map.addOverlay(endMarker);
+
+            // 创建信息窗口内容
+            var infoContent = `
+                <div style="padding: 12px; min-width: 200px;">
+                    <h4 style="margin: 0 0 8px 0; color: #2c3e50; font-size: 16px; font-weight: 600;">目的地</h4>
+                    <p style="margin: 0 0 4px 0; color: #666; font-size: 14px;"><strong>地址：</strong>${address}</p>
+            `;
+            if (orderId) {
+                infoContent += `<p style="margin: 0 0 8px 0; color: #666; font-size: 14px;"><strong>订单号：</strong>${orderId}</p>`;
+            }
+            infoContent += `
+                </div>
+            `;
+
+            // 添加信息窗口
+            var infoWindow = new BMap.InfoWindow(infoContent, {
+                width: 250,
+                height: 120
+            });
+
+            // 点击事件
+            endMarker.addEventListener("click", function () {
+                map.openInfoWindow(infoWindow, point);
+            });
+
+            // 自动打开信息窗口
+            setTimeout(function () {
+                map.openInfoWindow(infoWindow, point);
+            }, 1000);
+        }
+
+        // 绘制路径
+        function drawRoute(start, end) {
+            // 如果已有路径，先清除
+            if (routePolyline) {
+                map.removeOverlay(routePolyline);
+            }
+
+            // 创建路径点（添加一个中间点使路径更明显）
+            var points = [
+                start,
+                new BMap.Point((start.lng + end.lng) / 2, (start.lat + end.lat) / 2 + 0.01),
+                end
+            ];
+
+            // 保存路径点用于动画
+            pointsArray = points.slice(); // 使用 slice() 创建副本
+            totalPoints = pointsArray.length;
+            console.log("路径点数组:", pointsArray);
+
+            // 创建路径线（加粗到 10）
+            routePolyline = new BMap.Polyline(points, {
+                strokeColor: "#17a2b8",
+                strokeWeight: 10, // 加粗路径
+                strokeOpacity: 0.8
+            });
+            map.addOverlay(routePolyline);
+        }
+
+        // 恢复飞行动画
+        function resumeFlightAnimation() {
+            if (flightMarker) {
+                map.removeOverlay(flightMarker);
+            }
+
+            // 创建飞行器图标（红色小圆点）
+            var flightIcon = new BMap.Icon("data:image/svg+xml;base64," + btoa(`
+                <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="10" cy="10" r="8" fill="#FF4757" stroke="white" stroke-width="2"/>
+                    <circle cx="10" cy="10" r="4" fill="white"/>
+                </svg>
+            `), {
+                anchor: new BMap.Size(10, 10),
+                imageSize: new BMap.Size(20, 20)
+            });
+
+            // 获取保存的位置状态
+            var savedPosition = getSavedFlightPosition();
+            if (!savedPosition) {
+                startFlightAnimation();
+                return;
+            }
+            
+            var startPoint = savedPosition.point;
+            currentPointIndex = savedPosition.segmentIndex;
+            var step = savedPosition.step;
+
+            // 创建飞行器标记
+            flightMarker = new BMap.Marker(startPoint, { icon: flightIcon });
+            map.addOverlay(flightMarker);
+
+            // 设置动画参数
+            var maxStep = 100; // 分成 100 步完成一段路径
+            isAnimationRunning = true;
+
+            function animate() {
+                console.log("动画状态: currentPointIndex=" + currentPointIndex + ", step=" + step + ", totalPoints=" + totalPoints);
+                
+                // 检查是否已经到达最后一个点
+                if (currentPointIndex >= totalPoints - 1) {
+                    // 已经到达终点
+                    clearInterval(animationInterval);
+                    isAnimationRunning = false;
+                    clearSavedFlightPosition(); // 清除保存的位置
+                    showDeliverySuccess();
+                    return;
+                }
+
+                var fromPoint = pointsArray[currentPointIndex];
+                var toPoint = pointsArray[currentPointIndex + 1];
+
+                // 计算当前位置（插值）
+                var ratio = step / maxStep;
+                var lng = fromPoint.lng + (toPoint.lng - fromPoint.lng) * ratio;
+                var lat = fromPoint.lat + (toPoint.lat - fromPoint.lat) * ratio;
+
+                var newPos = new BMap.Point(lng, lat);
+                flightMarker.setPosition(newPos);
+                
+                // 保存当前位置
+                saveFlightPosition(newPos, currentPointIndex, step);
+
+                step++;
+                if (step >= maxStep) {
+                    currentPointIndex++;
+                    step = 0;
+                }
+            }
+
+            // 开始动画
+            animationInterval = setInterval(animate, 100); // 每 100ms 更新一次
+        }
+
+        // 修改 startFlightAnimation 函数
+        function startFlightAnimation() {
+            if (flightMarker) {
+                map.removeOverlay(flightMarker);
+            }
+
+            // 创建飞行器图标（红色小圆点）
+            var flightIcon = new BMap.Icon("data:image/svg+xml;base64," + btoa(`
+                <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="10" cy="10" r="8" fill="#FF4757" stroke="white" stroke-width="2"/>
+                    <circle cx="10" cy="10" r="4" fill="white"/>
+                </svg>
+            `), {
+                anchor: new BMap.Size(10, 10),
+                imageSize: new BMap.Size(20, 20)
+            });
+
+            // 检查是否有保存的位置状态
+            var savedPosition = getSavedFlightPosition();
+            var startPoint = savedPosition ? savedPosition.point : pointsArray[0];
+            currentPointIndex = savedPosition ? savedPosition.segmentIndex : 0;
+            var step = savedPosition ? savedPosition.step : 0;
+
+            // 创建飞行器标记
+            flightMarker = new BMap.Marker(startPoint, { icon: flightIcon });
+            map.addOverlay(flightMarker);
+
+            // 设置动画参数
+            var maxStep = 100; // 分成 100 步完成一段路径
+            isAnimationRunning = true;
+
+            function animate() {
+                console.log("动画状态: currentPointIndex=" + currentPointIndex + ", step=" + step + ", totalPoints=" + totalPoints);
+                
+                // 检查是否已经到达最后一个点
+                if (currentPointIndex >= totalPoints - 1) {
+                    // 已经到达终点
+                    clearInterval(animationInterval);
+                    isAnimationRunning = false;
+                    clearSavedFlightPosition(); // 清除保存的位置
+                    showDeliverySuccess();
+                    return;
+                }
+
+                var fromPoint = pointsArray[currentPointIndex];
+                var toPoint = pointsArray[currentPointIndex + 1];
+
+                // 计算当前位置（插值）
+                var ratio = step / maxStep;
+                var lng = fromPoint.lng + (toPoint.lng - fromPoint.lng) * ratio;
+                var lat = fromPoint.lat + (toPoint.lat - fromPoint.lat) * ratio;
+
+                var newPos = new BMap.Point(lng, lat);
+                flightMarker.setPosition(newPos);
+                
+                // 保存当前位置
+                saveFlightPosition(newPos, currentPointIndex, step);
+
+                step++;
+                if (step >= maxStep) {
+                    currentPointIndex++;
+                    step = 0;
+                }
+            }
+
+            // 开始动画
+            animationInterval = setInterval(animate, 100); // 每 100ms 更新一次
+        }
+
+        // 保存飞行器位置到 localStorage
+        function saveFlightPosition(point, segmentIndex, step) {
+            var positionData = {
+                point: {
+                    lng: point.lng,
+                    lat: point.lat
+                },
+                segmentIndex: segmentIndex,
+                step: step,
+                timestamp: new Date().getTime()
+            };
+            
+            // 只保存订单相关的飞行位置
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId = urlParams.get('order_id');
+            if (orderId) {
+                localStorage.setItem('flightPosition_' + orderId, JSON.stringify(positionData));
+            }
+        }
+
+        // 清除保存的飞行器位置
+        function clearSavedFlightPosition() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId = urlParams.get('order_id');
+            if (orderId) {
+                localStorage.removeItem('flightPosition_' + orderId);
+            }
+        }
+
+        // 获取保存的飞行器位置
+        function getSavedFlightPosition() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId = urlParams.get('order_id');
+            if (!orderId) return null;
+            
+            var savedData = localStorage.getItem('flightPosition_' + orderId);
+            if (!savedData) return null;
+            
+            try {
+                var positionData = JSON.parse(savedData);
+                // 检查数据是否过期（超过1小时清除）
+                var now = new Date().getTime();
+                if (now - positionData.timestamp > 3600000) { // 1小时
+                    localStorage.removeItem('flightPosition_' + orderId);
+                    return null;
+                }
+                
+                positionData.point = new BMap.Point(positionData.point.lng, positionData.point.lat);
+                return positionData;
+            } catch (e) {
+                console.error("解析保存的位置数据失败:", e);
+                localStorage.removeItem('flightPosition_' + orderId);
+                return null;
+            }
+        }
+
+        // 显示配送成功信息
+        function showDeliverySuccess() {
+            console.log("调用 showDeliverySuccess 函数");
+            
+            // 清除保存的飞行位置
+            clearSavedFlightPosition();
+            
+            // 获取URL中的order_id参数
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId = urlParams.get('order_id');
+            
+            // 如果没有orderId，则不发送请求（可能是测试情况）
+            if (!orderId) {
+                console.warn('未找到订单ID，跳过状态更新');
+                showSuccessMarkerAndInfo();
+                return;
+            }
+        
+            // 显示加载动画
+            showLoading();
+        
+            // 发送请求到后端，更新订单状态
+            fetch('/execute_success/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken() // 如果使用Django等框架需要CSRF token
+                },
+                body: JSON.stringify({
+                    order_id: orderId,
+                    status: 'completed' // 可以添加更多字段如完成时间等
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('网络响应不正常');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('订单状态更新成功:', data);
+                showSuccessMarkerAndInfo(); // 显示成功标记和信息窗口
+            })
+            .catch(error => {
+                console.error('订单状态更新失败:', error);
+                showNotification('配送成功，但状态更新失败: ' + error.message, 'error');
+                showSuccessMarkerAndInfo(); // 即使失败也显示成功标记
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        }
+
+        // 提取显示成功标记和信息窗口的逻辑
+        function showSuccessMarkerAndInfo() {
+            // 获取终点坐标
+            var endPoint = pointsArray[pointsArray.length - 1];
+            
+            // 创建配送成功图标
+            var successIcon = new BMap.Icon("data:image/svg+xml;base64," + btoa(`
+                <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="16" cy="16" r="14" fill="#28a745" stroke="white" stroke-width="2"/>
+                    <path d="M10 16l4 4 8-8" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            `), {
+                anchor: new BMap.Size(16, 16),
+                imageSize: new BMap.Size(32, 32)
+            });
+            
+            // 创建配送成功标记
+            var successMarker = new BMap.Marker(endPoint, { icon: successIcon });
+            map.addOverlay(successMarker);
+            
+            // 创建信息窗口
+            var infoWindow = new BMap.InfoWindow(`
+                <div style="padding: 15px; min-width: 200px; text-align: center;">
+                    <h3 style="margin: 0 0 10px 0; color: #28a745; font-size: 18px;">
+                        <i class="fas fa-check-circle"></i> 配送成功
+                    </h3>
+                    <p style="margin: 0 0 5px 0; color: #333; font-size: 14px;">
+                        您的药品已成功送达！
+                    </p>
+                    <p style="margin: 0; color: #666; font-size: 12px;">
+                        感谢您选择医飞速达服务
+                    </p>
+                </div>
+            `, {
+                width: 220,
+                height: 120,
+                title: "配送完成",
+                enableAutoPan: true
+            });
+            
+            // 打开信息窗口
+            map.openInfoWindow(infoWindow, endPoint);
+            
+            // 显示通知
+            showNotification('配送成功！药品已送达目的地。', 'success');
+        }
+        
+        // 显示加载动画
+        function showLoading() {
+            loading.style.display = 'block';
+        }
+
+        // 隐藏加载动画
+        function hideLoading() {
+            loading.style.display = 'none';
+        }
+
+        // 显示通知
+        function showNotification(message, type) {
+            // 创建通知元素
+            var notification = document.createElement('div');
+            notification.className = 'notification ' + type;
+            notification.textContent = message;
+
+            // 设置背景色
+            switch (type) {
+                case 'success':
+                    notification.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
+                    break;
+                case 'error':
+                    notification.style.background = 'linear-gradient(135deg, #dc3545, #e83e8c)';
+                    break;
+                default:
+                    notification.style.background = 'linear-gradient(135deg, #17a2b8, #6f42c1)';
+            }
+
+            // 添加到页面
+            document.body.appendChild(notification);
+
+            // 显示动画
+            setTimeout(function () {
+                notification.style.opacity = '1';
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+
+            // 自动隐藏
+            setTimeout(function () {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(function () {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // 显示服务范围限制的弹窗
+        function showServiceLimitModal(address) {
+            // 创建模态框元素
+            var modalOverlay = document.createElement('div');
+            modalOverlay.className = 'modal-overlay show';
+            
+            var modalContent = document.createElement('div');
+            modalContent.className = 'modal-content';
+            modalContent.innerHTML = `
+                <div class="modal-icon">⚠️</div>
+                <h2 class="modal-title">服务范围限制</h2>
+                <p class="modal-message">很抱歉，您的地址超出了我们的服务范围。我们目前仅在西安市主城区提供配送服务。</p>
+                <div class="modal-location">
+                    <strong>您输入的地址：</strong><br>
+                    ${address}
+                </div>
+                <div class="service-features">
+                    <h4>我们的服务范围包括：</h4>
+                    <ul>
+                        <li>西安市主城区</li>
+                        <li>经纬度范围：东经108.7°-109.2°，北纬34.0°-34.5°</li>
+                        <li>覆盖主要医院和社区</li>
+                    </ul>
+                </div>
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-btn-secondary" onclick="this.closest('.modal-overlay').remove()">关闭</button>
+                </div>
+            `;
+            
+            modalOverlay.appendChild(modalContent);
+            document.body.appendChild(modalOverlay);
+            
+            // 添加关闭事件
+            modalOverlay.addEventListener('click', function(e) {
+                if (e.target === modalOverlay) {
+                    modalOverlay.remove();
+                }
+            });
+        }
+
+        // 显示医院选择理由
+        function showSelectionReasons() {
+            console.log("开始显示医院选择理由...");
+            
+            try {
+                // 获取从后端传递的选择理由数据
+                var selectionReasons = {{ selection_reasons|safe }} || [];
+                var distance = parseFloat("{{ distance|default:0 }}");
+                var inventoryMatch = parseFloat("{{ inventory_match|default:0 }}");
+                
+                console.log("选择理由数据:", selectionReasons);
+                console.log("距离:", distance);
+                console.log("库存匹配度:", inventoryMatch);
+                
+                // 如果有选择理由数据，则在页面中显示
+                if (selectionReasons.length > 0) {
+                    // 检查是否已经存在选择理由元素，如果存在则先移除
+                    var existingReasons = document.getElementById('hospital-selection-reasons');
+                    if (existingReasons) {
+                        existingReasons.remove();
+                    }
+                    
+                    // 创建理由显示区域
+                    var reasonsContainer = document.createElement('div');
+                    reasonsContainer.id = 'hospital-selection-reasons';
+                    reasonsContainer.className = 'selection-reasons';
+                    
+                    // 创建标题
+                    var title = document.createElement('h3');
+                    // 医院前面加上名称,即XX医院
+                    try {
+                        var nearestHospitalData = '{{ nearest_hospital|escapejs }}';
+                        var hospitalName = "医院";
+                        if (nearestHospitalData && nearestHospitalData !== 'null' && nearestHospitalData !== '') {
+                            var nearestHospital = JSON.parse(nearestHospitalData);
+                            if (nearestHospital && nearestHospital.name) {
+                                hospitalName = nearestHospital.name;
+                            }
+                        }
+                        title.textContent = hospitalName;
+                    } catch (e) {
+                        console.log("解析医院名称失败:", e);
+                        title.textContent = '医院';
+                    }
+                    reasonsContainer.appendChild(title);
+                    
+                    // 创建理由列表
+                    var reasonsList = document.createElement('ul');
+                    selectionReasons.forEach(function(reason) {
+                        var listItem = document.createElement('li');
+                        listItem.textContent = reason;
+                        reasonsList.appendChild(listItem);
+                    });
+                    reasonsContainer.appendChild(reasonsList);
+                    
+                    // 创建详细信息区域
+                    var detailsContainer = document.createElement('div');
+                    detailsContainer.className = 'selection-details';
+                    
+                    var distanceInfo = document.createElement('p');
+                    distanceInfo.innerHTML = '<strong>距离:</strong> ' + distance.toFixed(2) + ' 公里';
+                    
+                    var inventoryInfo = document.createElement('p');
+                    inventoryInfo.innerHTML = '<strong>库存匹配度:</strong> ' + (inventoryMatch * 100).toFixed(1) + '%';
+                    
+                    detailsContainer.appendChild(distanceInfo);
+                    detailsContainer.appendChild(inventoryInfo);
+                    reasonsContainer.appendChild(detailsContainer);
+                    
+                    // 将理由区域添加到页面body中（而不是控制面板）
+                    document.body.appendChild(reasonsContainer);
+                    console.log("成功添加医院选择理由到页面左上角");
+                }
+            } catch (e) {
+                console.error("显示选择理由时出错:", e);
+            }
+        }
+
+        // 获取CSRF Token（如果使用Django等框架）
+        function getCSRFToken() {
+            const cookieValue = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)');
+            return cookieValue ? cookieValue.pop() : '';
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log("页面加载完成，开始初始化地图");
+            // 等待百度地图API加载完成
+            if (typeof BMap !== 'undefined') {
+                initMap();
+            } else {
+                // 如果API还未加载，等待加载完成
+                var checkBMap = setInterval(function () {
+                    if (typeof BMap !== 'undefined') {
+                        clearInterval(checkBMap);
+                        console.log("百度地图API加载完成，开始初始化");
+                        initMap();
+                    }
+                }, 100);
+            }
+        });
+        // 添加检查订单配送路径的函数
+    function checkOrderRoute(orderId) {
+        if (!orderId) {
+            showNotification('订单ID不能为空', 'error');
+            return;
+        }
+        
+        showLoading();
+        
+        // 调用 check_order 接口
+        fetch(`/route/check_order/?order_id=${encodeURIComponent(orderId)}`)
+            .then(response => {
+                hideLoading();
+                if (response.redirected) {
+                    // 如果返回的是重定向到 route_map.html 的响应，则重新加载页面
+                    window.location.href = response.url;
+                } else if (response.headers.get('content-type')?.includes('application/json')) {
+                    // 如果返回的是 JSON 数据
+                    return response.json().then(data => {
+                        if (data.status === 'success') {
+                            showNotification('路径检查完成', 'success');
+                            // 处理返回的数据
+                            handleRouteCheckResult(data);
+                        } else {
+                            showNotification(data.message || '路径检查失败', 'error');
+                        }
+                    });
+                } else {
+                    // 如果返回的是 HTML 页面
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                console.error('检查订单路径时出错:', error);
+                showNotification('检查订单路径时出错: ' + error.message, 'error');
+            });
+    }
+
+    // 处理路由检查结果
+    function handleRouteCheckResult(data) {
+        // 根据返回的动作类型进行不同的处理
+        if (data.action === 'select_hospital' && data.hospital) {
+            // 如果是选择医院的动作，在地图上标出医院位置
+            showNotification(`推荐医院: ${data.hospital.name}`, 'info');
+            // 这里可以添加在地图上标注医院的逻辑
+            
+        } else if (data.action === 'wait_for_restock') {
+            showNotification(data.message || '建议等待医院补货', 'info');
+            
+        } else if (data.action === 'redirect_alternative') {
+            showNotification(data.message || '建议重定向到替代方案', 'info');
+            
+        } else if (data.action === 'split_order') {
+            showNotification(data.message || '建议拆分订单', 'info');
+            
+        } else {
+            showNotification(data.message || `执行默认动作，索引 ${data.action_index}`, 'info');
+        }
+    }
+    </script>
+    {% include 'footer.html' %}
+</body>
+</html>
