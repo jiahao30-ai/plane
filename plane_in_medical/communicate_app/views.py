@@ -28,8 +28,8 @@ def chat_view(request):
 
         response = Application.call(
             # 若没有配置环境变量，可用百炼API Key将下行替换为：api_key="sk-xxx"。但不建议在生产环境中直接将API Key硬编码到代码中，以减少API Key泄露风险。
-            api_key="sk-641de691567b4ae8a3abf99362f6f5f7",
-            app_id="7a4eaca8970a48c28d90758627928b4b",
+            api_key="你的秘钥",
+            app_id="你的id",
             prompt=question)
 
         if response.status_code != HTTPStatus.OK:
