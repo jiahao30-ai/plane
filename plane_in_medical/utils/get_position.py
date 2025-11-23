@@ -11,8 +11,8 @@ class XiAnGeocoder:
             api_key: 百度地图API密钥，如果未提供则使用默认密钥
         """
         # 默认使用的百度地图API密钥
-        self.api_key = "d8UlucTQIiBw45rbazMP864bHqIr3X9J"
-        self.base_url = "http://api.map.baidu.com/geocoding/v3/"
+        self.api_key = "api_key"
+        self.base_url = "路径"
         
     def get_coordinates(self, address: str) -> Optional[Tuple[float, float]]:
         """
