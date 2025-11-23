@@ -1,8 +1,5 @@
 # 医飞速达 - 无人机医疗配送系统
 
-<p align="center">
-  <img src="static/images/logo1.png" alt="医飞速达Logo" width="200">
-</p>
 
 <p align="center">
   <a href="https://github.com/yourusername/plane_in_medical">
