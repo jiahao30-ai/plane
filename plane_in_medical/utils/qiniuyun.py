@@ -22,8 +22,8 @@ def upload_medicine_images():
     将media/medicine_images文件夹中的所有图片上传到七牛云存储的medicine文件夹中
     """
     # 设置访问凭证
-    access_key = 'fpc5KAJBEd0kNn0ega-YK54KWkjl0q8k3A7r6Pjr'
-    secret_key = 'Tkv0FY8gv6kQqvtdaPeTPOKKXbOytWR4FFYzEahP'
+    access_key = '你的访问凭证'
+    secret_key = '你的秘钥'
     
     # 本地图片文件夹路径
     local_image_dir = 'media'
